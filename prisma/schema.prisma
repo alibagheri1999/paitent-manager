@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// PostgreSQL schema with proper types and enums
+
+enum Role {
+  ADMIN
+  DOCTOR
+  RECEPTIONIST
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum TreatmentType {
+  CONSULTATION
+  CLEANING
+  FILLING
+  EXTRACTION
+  CROWN
+  BRIDGE
+  IMPLANT
+  ROOT_CANAL
+  ORTHODONTICS
+  COSMETIC
+  OTHER
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(RECEPTIONIST)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  patients   Patient[]
+  records    Record[]
+  appointments Appointment[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Patient {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  nationalId  String?  @unique
+  dateOfBirth DateTime?
+  address     String?
+  emergencyContact String?
+  emergencyPhone   String?
+  medicalHistory   String?
+  allergies        String?
+  notes            String?
+  isActive         Boolean @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  records     Record[]
+  appointments Appointment[]
+
+  @@index([firstName, lastName])
+  @@index([phone])
+  @@index([email])
+  @@index([nationalId])
+}
+
+model Record {
+  id          String        @id @default(cuid())
+  patientId   String
+  treatmentType TreatmentType
+  description String
+  cost        Decimal @db.Decimal(10, 2)
+  date        DateTime
+  notes       String?
+  isCompleted Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([patientId])
+  @@index([date])
+  @@index([treatmentType])
+  @@index([cost])
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  patientId   String
+  date        DateTime
+  startTime   String
+  endTime     String
+  status      AppointmentStatus @default(SCHEDULED)
+  treatmentType TreatmentType?
+  description String?
+  notes       String?
+  reminderSent Boolean          @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([patientId])
+  @@index([date])
+  @@index([status])
+  @@index([treatmentType])
+}

@@ -190,57 +190,62 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         {/* Calendar Header with Navigation */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-bold text-gray-900">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {calendarData?.calendarTitle || "Calendar"}
               </h2>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewChange("month")}
-                  className={currentView === "month" ? "bg-blue-50 border-blue-200" : ""}
+                  className={`text-xs sm:text-sm ${currentView === "month" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Month
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="hidden sm:inline">Month</span>
+                  <span className="sm:hidden">M</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewChange("week")}
-                  className={currentView === "week" ? "bg-blue-50 border-blue-200" : ""}
+                  className={`text-xs sm:text-sm ${currentView === "week" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Clock className="h-4 w-4 mr-1" />
-                  Week
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="hidden sm:inline">Week</span>
+                  <span className="sm:hidden">W</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewChange("day")}
-                  className={currentView === "day" ? "bg-blue-50 border-blue-200" : ""}
+                  className={`text-xs sm:text-sm ${currentView === "day" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Users className="h-4 w-4 mr-1" />
-                  Day
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="hidden sm:inline">Day</span>
+                  <span className="sm:hidden">D</span>
                 </Button>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleNavigation("prev")}
+                className="text-xs sm:text-sm"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleNavigation("today")}
+                className="text-xs sm:text-sm"
               >
                 Today
               </Button>
@@ -248,79 +253,85 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
                 variant="outline"
                 size="sm"
                 onClick={() => handleNavigation("next")}
+                className="text-xs sm:text-sm"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
           
           {/* Stats */}
           {calendarData?.stats && (
-            <div className="grid grid-cols-5 gap-4 mb-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 mb-4">
+              <div className="text-center p-2 sm:p-3 bg-blue-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-blue-600">
                   {calendarData.stats.totalAppointments}
                 </div>
-                <div className="text-sm text-blue-800">Total</div>
+                <div className="text-xs sm:text-sm text-blue-800">Total</div>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-green-600">
                   {calendarData.stats.scheduled}
                 </div>
-                <div className="text-sm text-green-800">Scheduled</div>
+                <div className="text-xs sm:text-sm text-green-800">Scheduled</div>
               </div>
-              <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-center p-2 sm:p-3 bg-emerald-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-emerald-600">
                   {calendarData.stats.completed}
                 </div>
-                <div className="text-sm text-emerald-800">Completed</div>
+                <div className="text-xs sm:text-sm text-emerald-800">Completed</div>
               </div>
-              <div className="text-center p-3 bg-red-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
+              <div className="text-center p-2 sm:p-3 bg-red-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-red-600">
                   {calendarData.stats.cancelled}
                 </div>
-                <div className="text-sm text-red-800">Cancelled</div>
+                <div className="text-xs sm:text-sm text-red-800">Cancelled</div>
               </div>
-              <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-center p-2 sm:p-3 bg-yellow-50 rounded-lg">
+                <div className="text-lg sm:text-2xl font-bold text-yellow-600">
                   {calendarData.stats.noShow}
                 </div>
-                <div className="text-sm text-yellow-800">No Show</div>
+                <div className="text-xs sm:text-sm text-yellow-800">No Show</div>
               </div>
             </div>
           )}
         </div>
 
         {/* FullCalendar */}
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView={getCalendarView()}
-          headerToolbar={false} // We're using custom header
-          events={appointments}
-          dateClick={handleDateClick}
-          eventClick={handleEventClick}
-          height="auto"
-          slotMinTime="08:00:00"
-          slotMaxTime="20:00:00"
-          businessHours={{
-            daysOfWeek: [1, 2, 3, 4, 5, 6], // Monday - Saturday
-            startTime: "09:00",
-            endTime: "18:00",
-          }}
-          eventDisplay="block"
-          dayMaxEvents={currentView === "month" ? 3 : false}
-          moreLinkClick="popover"
-          initialDate={currentDate}
-          validRange={{
-            start: calendarData?.dateRange.start,
-            end: calendarData?.dateRange.end,
-          }}
-          selectable={true}
-          selectMirror={true}
-          weekends={true}
-          allDaySlot={false}
-          eventTextColor="#ffffff"
-        />
+        <div className="overflow-x-auto">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView={getCalendarView()}
+            headerToolbar={false} // We're using custom header
+            events={appointments}
+            dateClick={handleDateClick}
+            eventClick={handleEventClick}
+            height="auto"
+            slotMinTime="08:00:00"
+            slotMaxTime="20:00:00"
+            businessHours={{
+              daysOfWeek: [1, 2, 3, 4, 5, 6], // Monday - Saturday
+              startTime: "09:00",
+              endTime: "18:00",
+            }}
+            eventDisplay="block"
+            dayMaxEvents={currentView === "month" ? 3 : false}
+            moreLinkClick="popover"
+            initialDate={currentDate}
+            selectable={true}
+            selectMirror={true}
+            weekends={true}
+            allDaySlot={false}
+            eventTextColor="#ffffff"
+            aspectRatio={1.8}
+            dayMaxEventRows={3}
+            eventTimeFormat={{
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: false
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

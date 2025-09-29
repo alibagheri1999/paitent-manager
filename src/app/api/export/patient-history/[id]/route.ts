@@ -52,7 +52,7 @@ export async function GET(
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    // Fetch patient's records with files
+    // Fetch patient's records with files and payment steps
     console.log("Fetching records for patient:", patientId);
     const records = await (prisma as any).record.findMany({
       where: { patientId },
@@ -66,6 +66,21 @@ export async function GET(
             fileUrl: true,
             uploadedAt: true,
           },
+        },
+        paymentSteps: {
+          select: {
+            id: true,
+            stepNumber: true,
+            amount: true,
+            dueDate: true,
+            isPaid: true,
+            paidDate: true,
+            paymentMethod: true,
+            notes: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { stepNumber: 'asc' },
         },
       },
       orderBy: { date: 'desc' },
@@ -84,27 +99,54 @@ export async function GET(
     console.log("Creating Excel workbook");
     const workbook = XLSX.utils.book_new();
 
-    // Create data with only record details and file information
-    console.log("Creating record details data");
-    const excelData = records.map(record => ({
-      // Record Information
-      'Record ID': record.id,
-      'Treatment Type': record.treatmentType,
-      'Description': record.description,
-      'Cost': formatCurrencyForExcel(record.cost),
-      'Record Date': formatDateForExcel(record.date),
-      'Record Notes': record.notes || '',
-      'Is Completed': record.isCompleted ? 'Yes' : 'No',
-      'Record Created At': formatDateTimeForExcel(record.createdAt),
-      'Record Updated At': formatDateTimeForExcel(record.updatedAt),
-      
-      // File Information
-      'File Count': record.files.length,
-      'File URLs': record.files.map(file => file.fileUrl).join('; '),
-      'File Names': record.files.map(file => file.originalName).join('; '),
-      'File Sizes': record.files.map(file => file.fileSize).join('; '),
-      'File Types': record.files.map(file => file.mimeType).join('; '),
-    }));
+    // Create data with record details, file information, and payment steps
+    console.log("Creating record details data with payment steps");
+    const excelData = records.map(record => {
+      // Calculate payment totals
+      const totalPaid = record.paymentSteps.reduce((sum: number, step: any) => {
+        return sum + (step.isPaid ? parseFloat(step.amount.toString()) : 0);
+      }, 0);
+      const totalUnpaid = record.paymentSteps.reduce((sum: number, step: any) => {
+        return sum + (!step.isPaid ? parseFloat(step.amount.toString()) : 0);
+      }, 0);
+      const totalSteps = record.paymentSteps.length;
+      const paidSteps = record.paymentSteps.filter((step: any) => step.isPaid).length;
+      const unpaidSteps = totalSteps - paidSteps;
+
+      return {
+        // Record Information
+        'Record ID': record.id,
+        'Treatment Type': record.treatmentType,
+        'Description': record.description,
+        'Cost': formatCurrencyForExcel(record.cost),
+        'Record Date': formatDateForExcel(record.date),
+        'Record Notes': record.notes || '',
+        'Is Completed': record.isCompleted ? 'Yes' : 'No',
+        'Record Created At': formatDateTimeForExcel(record.createdAt),
+        'Record Updated At': formatDateTimeForExcel(record.updatedAt),
+        
+        // Payment Information
+        'Payment Status': record.paymentStatus || 'UNPAID',
+        'Total Payment Steps': totalSteps,
+        'Paid Steps': paidSteps,
+        'Unpaid Steps': unpaidSteps,
+        'Total Paid Amount': formatCurrencyForExcel(totalPaid),
+        'Total Unpaid Amount': formatCurrencyForExcel(totalUnpaid),
+        'Remaining Debt': formatCurrencyForExcel(parseFloat(record.cost.toString()) - totalPaid),
+        
+        // Payment Steps Details
+        'Payment Steps': record.paymentSteps.map((step: any) => 
+          `Step ${step.stepNumber}: ${formatCurrencyForExcel(parseFloat(step.amount.toString()))} - ${step.isPaid ? 'Paid' : 'Unpaid'}${step.dueDate ? ` (Due: ${formatDateForExcel(step.dueDate)})` : ''}${step.paymentMethod ? ` (Method: ${step.paymentMethod})` : ''}${step.notes ? ` (Notes: ${step.notes})` : ''}`
+        ).join(' | '),
+        
+        // File Information
+        'File Count': record.files.length,
+        'File URLs': record.files.map(file => file.fileUrl).join('; '),
+        'File Names': record.files.map(file => file.originalName).join('; '),
+        'File Sizes': record.files.map(file => file.fileSize).join('; '),
+        'File Types': record.files.map(file => file.mimeType).join('; '),
+      };
+    });
 
     // If no records, create empty sheet
     if (excelData.length === 0) {
@@ -119,6 +161,14 @@ export async function GET(
         'Is Completed': '',
         'Record Created At': '',
         'Record Updated At': '',
+        'Payment Status': '',
+        'Total Payment Steps': 0,
+        'Paid Steps': 0,
+        'Unpaid Steps': 0,
+        'Total Paid Amount': '',
+        'Total Unpaid Amount': '',
+        'Remaining Debt': '',
+        'Payment Steps': '',
         'File Count': 0,
         'File URLs': '',
         'File Names': '',
@@ -130,6 +180,75 @@ export async function GET(
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Patient Records');
     console.log("Patient records sheet created");
+
+    // Create detailed payment steps sheet
+    console.log("Creating payment steps sheet");
+    const paymentStepsData: any[] = [];
+    
+    records.forEach(record => {
+      if (record.paymentSteps.length > 0) {
+        record.paymentSteps.forEach((step: any) => {
+          paymentStepsData.push({
+            'Record ID': record.id,
+            'Treatment Type': record.treatmentType,
+            'Description': record.description,
+            'Record Cost': formatCurrencyForExcel(record.cost),
+            'Record Date': formatDateForExcel(record.date),
+            'Step Number': step.stepNumber,
+            'Step Amount': formatCurrencyForExcel(parseFloat(step.amount.toString())),
+            'Due Date': step.dueDate ? formatDateForExcel(step.dueDate) : '',
+            'Is Paid': step.isPaid ? 'Yes' : 'No',
+            'Paid Date': step.paidDate ? formatDateForExcel(step.paidDate) : '',
+            'Payment Method': step.paymentMethod || '',
+            'Step Notes': step.notes || '',
+            'Step Created At': formatDateTimeForExcel(step.createdAt),
+            'Step Updated At': formatDateTimeForExcel(step.updatedAt),
+          });
+        });
+      } else {
+        // Add record with no payment steps
+        paymentStepsData.push({
+          'Record ID': record.id,
+          'Treatment Type': record.treatmentType,
+          'Description': record.description,
+          'Record Cost': formatCurrencyForExcel(record.cost),
+          'Record Date': formatDateForExcel(record.date),
+          'Step Number': 'N/A',
+          'Step Amount': '',
+          'Due Date': '',
+          'Is Paid': 'N/A',
+          'Paid Date': '',
+          'Payment Method': '',
+          'Step Notes': 'No payment steps configured',
+          'Step Created At': '',
+          'Step Updated At': '',
+        });
+      }
+    });
+
+    // If no payment steps data, create empty sheet
+    if (paymentStepsData.length === 0) {
+      paymentStepsData.push({
+        'Record ID': 'No payment steps found',
+        'Treatment Type': '',
+        'Description': '',
+        'Record Cost': '',
+        'Record Date': '',
+        'Step Number': '',
+        'Step Amount': '',
+        'Due Date': '',
+        'Is Paid': '',
+        'Paid Date': '',
+        'Payment Method': '',
+        'Step Notes': '',
+        'Step Created At': '',
+        'Step Updated At': '',
+      });
+    }
+
+    const paymentStepsWorksheet = XLSX.utils.json_to_sheet(paymentStepsData);
+    XLSX.utils.book_append_sheet(workbook, paymentStepsWorksheet, 'Payment Steps');
+    console.log("Payment steps sheet created");
 
     // Generate filename
     console.log("Generating filename");

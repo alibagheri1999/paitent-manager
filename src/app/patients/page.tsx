@@ -113,21 +113,22 @@ export default function PatientsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Patients</h1>
-            <p className="text-gray-600">Manage your dental clinic patients</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Patients</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage your dental clinic patients</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-slide-in-left animation-delay-500">
             <ExportButton
               exportType="patients"
               filename="patients_export"
               variant="outline"
+              className="w-full sm:w-auto hover-lift"
             >
               Export Patients
             </ExportButton>
-            <Button onClick={() => setIsFormOpen(true)}>
+            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto hover-lift">
               <Plus className="h-4 w-4 mr-2" />
               Add Patient
             </Button>
@@ -135,32 +136,32 @@ export default function PatientsPage() {
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 animate-slide-up animation-delay-1000">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
               placeholder="Search patients..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
+              className="pl-10 hover-lift"
             />
           </div>
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" className="w-full sm:w-auto hover-lift">
             Search
           </Button>
         </form>
 
         {/* Debt Overview Section */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+        <div className="bg-white rounded-lg shadow animate-fade-in animation-delay-1200">
+          <div className="p-4 sm:p-6 border-b">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center space-x-2">
               <DollarSign className="h-5 w-5 text-red-600" />
               <span>Patient Debt Overview</span>
             </h2>
-            <p className="text-gray-600 mt-1">Quick overview of patients with outstanding payments</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Quick overview of patients with outstanding payments</p>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <PatientDebtOverview />
           </div>
         </div>

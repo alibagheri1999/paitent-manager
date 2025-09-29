@@ -39,20 +39,30 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Total patients
-    const totalPatients = await prisma.patient.count({
-      where: {
-        isActive: true,
-      },
-    });
+    // Total patients (all patients, not just active)
+    const totalPatients = await prisma.patient.count();
 
     // Total appointments
     const totalAppointments = await prisma.appointment.count();
 
-    // Average appointment value
-    const averageAppointmentValue = totalRevenueResult._sum.cost && totalAppointments > 0 
-      ? totalRevenueResult._sum.cost / totalAppointments 
+    // Average value per completed record (not per appointment)
+    const completedRecordsCount = await prisma.record.count({
+      where: {
+        isCompleted: true,
+      },
+    });
+    
+    const averageValue = totalRevenueResult._sum.cost && completedRecordsCount > 0 
+      ? Number(totalRevenueResult._sum.cost) / completedRecordsCount 
       : 0;
+
+    console.log('Analytics Debug:', {
+      totalRevenue: totalRevenueResult._sum.cost,
+      completedRecordsCount,
+      averageValue,
+      totalPatients,
+      totalAppointments
+    });
 
     // Top treatments
     const topTreatments = await prisma.record.groupBy({
@@ -85,7 +95,7 @@ export async function GET(request: NextRequest) {
       monthlyRevenue: monthlyRevenueResult._sum.cost || 0,
       totalPatients,
       totalAppointments,
-      averageAppointmentValue,
+      averageAppointmentValue: averageValue,
       topTreatments: formattedTopTreatments,
     });
   } catch (error) {

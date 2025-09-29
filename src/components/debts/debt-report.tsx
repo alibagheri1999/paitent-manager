@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,8 @@ export function DebtReport() {
   const [debtReport, setDebtReport] = useState<DebtReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<PatientDebt | null>(null);
+  
+  console.log("DebtReport component - selectedPatient:", selectedPatient);
 
   useEffect(() => {
     fetchDebtReport();
@@ -159,6 +162,23 @@ export function DebtReport() {
 
   return (
     <div className="space-y-6">
+      {/* Test Button - Remove this after testing */}
+      <div className="bg-yellow-100 p-4 rounded-lg">
+        <p className="text-sm text-yellow-800 mb-2">Debug: Current selectedPatient state: {selectedPatient ? selectedPatient.patientName : 'null'}</p>
+        <Button 
+          onClick={() => {
+            console.log("Test button clicked");
+            if (debtReport && debtReport.patients.length > 0) {
+              setSelectedPatient(debtReport.patients[0]);
+            }
+          }}
+          variant="outline"
+          size="sm"
+        >
+          Test Modal (First Patient)
+        </Button>
+      </div>
+      
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -258,7 +278,10 @@ export function DebtReport() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedPatient(patient)}
+                      onClick={() => {
+                        console.log("View Details clicked for patient:", patient.patientName);
+                        setSelectedPatient(patient);
+                      }}
                     >
                       View Details
                     </Button>
@@ -272,10 +295,16 @@ export function DebtReport() {
 
       {/* Patient Details Modal */}
       {selectedPatient && (
-        <PatientDebtDetails
-          patient={selectedPatient}
-          onClose={() => setSelectedPatient(null)}
-        />
+        <>
+          {console.log("Rendering modal for patient:", selectedPatient.patientName)}
+          <PatientDebtDetails
+            patient={selectedPatient}
+            onClose={() => {
+              console.log("Closing modal for patient:", selectedPatient.patientName);
+              setSelectedPatient(null);
+            }}
+          />
+        </>
       )}
     </div>
   );
@@ -289,10 +318,12 @@ function PatientDebtDetails({
   patient: PatientDebt; 
   onClose: () => void;
 }) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-4xl max-h-[80vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+  console.log("PatientDebtDetails component rendering for:", patient.patientName);
+  
+  const modalContent = (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <CardTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
             <span>{patient.patientName} - Debt Details</span>
@@ -301,7 +332,7 @@ function PatientDebtDetails({
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 overflow-y-auto flex-1">
           <div className="space-y-6">
             {/* Patient Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
@@ -361,6 +392,13 @@ function PatientDebtDetails({
       </Card>
     </div>
   );
+
+  // Use portal to render modal outside the current DOM hierarchy
+  if (typeof window !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  
+  return modalContent;
 }
 
 function getStatusColor(status: string) {

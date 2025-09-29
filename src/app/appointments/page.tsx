@@ -39,26 +39,31 @@ export default function AppointmentsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-bounce-in">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-            <p className="text-gray-600">Manage your dental clinic appointments</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Appointments</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage your dental clinic appointments</p>
           </div>
-          <ExportButton
-            exportType="appointments"
-            filename="appointments_export"
-            variant="outline"
-          >
-            Export Appointments
-          </ExportButton>
+          <div className="animate-slide-in-left animation-delay-500">
+            <ExportButton
+              exportType="appointments"
+              filename="appointments_export"
+              variant="outline"
+              className="w-full sm:w-auto hover-lift hover:animate-wiggle"
+            >
+              Export Appointments
+            </ExportButton>
+          </div>
         </div>
-
-        <AppointmentCalendar 
-          onDateSelect={handleDateSelect}
-          onEditAppointment={handleEditAppointment}
-          refreshKey={refreshKey}
-        />
+        
+        <div className="animate-bounce-in animation-delay-1000">
+          <AppointmentCalendar 
+            onDateSelect={handleDateSelect}
+            onEditAppointment={handleEditAppointment}
+            refreshKey={refreshKey}
+          />
+        </div>
 
         {isFormOpen && (
           <AppointmentForm

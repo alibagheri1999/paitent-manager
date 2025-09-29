@@ -78,7 +78,7 @@ export function AnalyticsDashboard() {
     {
       title: "Average Value",
       value: formatCurrency(analytics.averageAppointmentValue),
-      description: "Per appointment",
+      description: "Per completed record",
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
     },

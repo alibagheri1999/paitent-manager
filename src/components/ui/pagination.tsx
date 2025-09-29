@@ -66,20 +66,21 @@ export function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-gray-700">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="text-sm text-gray-700 text-center sm:text-left">
         Showing {startItem} to {endItem} of {totalCount} results
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1 sm:space-x-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={!hasPrevPage}
+          className="text-xs sm:text-sm"
         >
           <ChevronLeft className="h-4 w-4" />
-          Previous
+          <span className="hidden sm:inline ml-1">Previous</span>
         </Button>
 
         <div className="flex items-center space-x-1">
@@ -105,7 +106,7 @@ export function Pagination({
                 variant={currentPage === pageNumber ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNumber)}
-                className="w-8 h-8 p-0"
+                className="w-8 h-8 p-0 text-xs sm:text-sm"
               >
                 {pageNumber}
               </Button>
@@ -118,8 +119,9 @@ export function Pagination({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={!hasNextPage}
+          className="text-xs sm:text-sm"
         >
-          Next
+          <span className="hidden sm:inline mr-1">Next</span>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

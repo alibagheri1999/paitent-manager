@@ -49,23 +49,27 @@ export default function StaffPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-bounce-in">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-            <p className="text-gray-600">Manage your clinic staff members</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Staff Management</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage your clinic staff members</p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Staff
-          </Button>
+          <div className="animate-slide-in-left animation-delay-500">
+            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto hover-lift hover:animate-wiggle">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Staff
+            </Button>
+          </div>
         </div>
 
-        <StaffList 
-          staff={staff} 
-          onEdit={handleEditStaff}
-          onRefresh={fetchStaff}
-        />
+        <div className="animate-bounce-in animation-delay-1000">
+          <StaffList 
+            staff={staff} 
+            onEdit={handleEditStaff}
+            onRefresh={fetchStaff}
+          />
+        </div>
 
         {isFormOpen && (
           <StaffForm

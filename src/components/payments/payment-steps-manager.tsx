@@ -161,18 +161,18 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
         </div>
 
         {/* Payment Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="text-center">
-            <p className="text-sm text-gray-600">Total Cost</p>
-            <p className="text-lg font-semibold text-gray-900">{formatCurrency(typeof recordCost === 'string' ? parseFloat(recordCost) : recordCost)}</p>
+            <p className="text-xs sm:text-sm text-gray-600">Total Cost</p>
+            <p className="text-base sm:text-lg font-semibold text-gray-900">{formatCurrency(typeof recordCost === 'string' ? parseFloat(recordCost) : recordCost)}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">Paid Amount</p>
-            <p className="text-lg font-semibold text-green-600">{formatCurrency(calculateTotalPaid())}</p>
+            <p className="text-xs sm:text-sm text-gray-600">Paid Amount</p>
+            <p className="text-base sm:text-lg font-semibold text-green-600">{formatCurrency(calculateTotalPaid())}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">Remaining Debt</p>
-            <p className="text-lg font-semibold text-red-600">{formatCurrency(calculateRemainingDebt())}</p>
+            <p className="text-xs sm:text-sm text-gray-600">Remaining Debt</p>
+            <p className="text-base sm:text-lg font-semibold text-red-600">{formatCurrency(calculateRemainingDebt())}</p>
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
           <div className="space-y-4">
             {paymentSteps.map((step) => (
               <div key={step.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
@@ -199,45 +199,47 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-medium text-gray-900">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                             Step {step.stepNumber}: {formatCurrency(typeof step.amount === 'string' ? parseFloat(step.amount) : step.amount)}
                           </h4>
                           <Badge className={step.isPaid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
                             {step.isPaid ? "Paid" : "Unpaid"}
                           </Badge>
                         </div>
-                        {step.dueDate && (
-                          <p className="text-sm text-gray-600">
-                            Due: {formatDate(new Date(step.dueDate))}
-                          </p>
-                        )}
-                        {step.isPaid && step.paidDate && (
-                          <p className="text-sm text-green-600">
-                            Paid: {formatDate(new Date(step.paidDate))}
-                          </p>
-                        )}
-                        {step.paymentMethod && (
-                          <p className="text-sm text-gray-500">
-                            Method: {step.paymentMethod}
-                          </p>
-                        )}
-                        {step.notes && (
-                          <p className="text-sm text-gray-500 mt-1">{step.notes}</p>
-                        )}
+                        <div className="mt-2 space-y-1">
+                          {step.dueDate && (
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              Due: {formatDate(new Date(step.dueDate))}
+                            </p>
+                          )}
+                          {step.isPaid && step.paidDate && (
+                            <p className="text-xs sm:text-sm text-green-600">
+                              Paid: {formatDate(new Date(step.paidDate))}
+                            </p>
+                          )}
+                          {step.paymentMethod && (
+                            <p className="text-xs sm:text-sm text-gray-500">
+                              Method: {step.paymentMethod}
+                            </p>
+                          )}
+                          {step.notes && (
+                            <p className="text-xs sm:text-sm text-gray-500">{step.notes}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-end space-x-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingStep(step)}
-                      className="flex items-center space-x-1"
+                      className="flex items-center space-x-1 text-xs sm:text-sm"
                     >
                       <Edit className="h-4 w-4" />
-                      <span>Edit</span>
+                      <span className="hidden sm:inline">Edit</span>
                     </Button>
                   </div>
                 </div>

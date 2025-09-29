@@ -73,7 +73,7 @@ export function PatientDebtOverview() {
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
@@ -81,8 +81,8 @@ export function PatientDebtOverview() {
                 <Users className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Patients with Debts</p>
-                <p className="text-xl font-bold text-gray-900">{debtSummary.totalPatientsWithDebts}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Patients with Debts</p>
+                <p className="text-lg sm:text-xl font-bold text-gray-900">{debtSummary.totalPatientsWithDebts}</p>
               </div>
             </div>
           </CardContent>
@@ -95,8 +95,8 @@ export function PatientDebtOverview() {
                 <DollarSign className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Outstanding</p>
-                <p className="text-xl font-bold text-red-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Outstanding</p>
+                <p className="text-lg sm:text-xl font-bold text-red-600">
                   {formatCurrency(debtSummary.totalDebtAmount || 0)}
                 </p>
               </div>
@@ -111,8 +111,8 @@ export function PatientDebtOverview() {
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Average Debt</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Average Debt</p>
+                <p className="text-lg sm:text-xl font-bold text-gray-900">
                   {formatCurrency(
                     debtSummary.totalPatientsWithDebts > 0 
                       ? (debtSummary.totalDebtAmount || 0) / debtSummary.totalPatientsWithDebts 
@@ -128,15 +128,15 @@ export function PatientDebtOverview() {
       {/* Top Debtors */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
             <AlertTriangle className="h-5 w-5 text-red-600" />
             <span>Top Outstanding Debts</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="space-y-3">
             {debtSummary.patients.slice(0, 5).map((patient) => (
-              <div key={patient.patientId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={patient.patientId} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-2 sm:gap-0">
                 <div className="flex items-center space-x-3">
                   <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
                     <span className="text-sm font-medium text-red-600">
@@ -144,19 +144,19 @@ export function PatientDebtOverview() {
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{patient.patientName}</p>
-                    <p className="text-sm text-gray-500">{patient.unpaidRecords} unpaid record{patient.unpaidRecords !== 1 ? 's' : ''}</p>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">{patient.patientName}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">{patient.unpaidRecords} unpaid record{patient.unpaidRecords !== 1 ? 's' : ''}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-red-600">{formatCurrency(patient.totalDebt || 0)}</p>
+                <div className="text-left sm:text-right">
+                  <p className="font-bold text-red-600 text-sm sm:text-base">{formatCurrency(patient.totalDebt || 0)}</p>
                 </div>
               </div>
             ))}
             
             {debtSummary.patients.length > 5 && (
               <div className="text-center pt-2">
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   And {debtSummary.patients.length - 5} more patient{debtSummary.patients.length - 5 !== 1 ? 's' : ''} with outstanding debts
                 </p>
               </div>

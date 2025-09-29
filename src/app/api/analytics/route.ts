@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     });
 
-    const formattedTopTreatments = topTreatments.map(treatment => ({
+    const formattedTopTreatments = topTreatments.map((treatment: any) => ({
       treatmentType: treatment.treatmentType,
       count: treatment._count.treatmentType,
       revenue: treatment._sum.cost || 0,

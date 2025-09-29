@@ -160,7 +160,7 @@ async function updateRecordPaymentStatus(recordId: string) {
   if (!record) return;
 
   const totalSteps = record.paymentSteps.length;
-  const paidSteps = record.paymentSteps.filter(step => step.isPaid).length;
+  const paidSteps = record.paymentSteps.filter((step: any) => step.isPaid).length;
 
   let paymentStatus = "UNPAID";
   if (paidSteps === totalSteps && totalSteps > 0) {

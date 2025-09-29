@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Group appointments by date for calendar view
-    const appointmentsByDate = appointments.reduce((acc: any, appointment) => {
+    const appointmentsByDate = appointments.reduce((acc: any, appointment: any) => {
       const dateKey = appointment.date.toISOString().split('T')[0];
       if (!acc[dateKey]) {
         acc[dateKey] = [];
@@ -164,13 +164,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Verify the user exists in the database
+    console.log("Session user ID:", session.user.id);
+    console.log("Session user email:", session.user.email);
+    
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
+    
+    if (!user) {
+      console.error("User not found in database with ID:", session.user.id);
+      console.error("Available users in database:");
+      
+      // List all users for debugging
+      const allUsers = await prisma.user.findMany({
+        select: { id: true, email: true, name: true }
+      });
+      allUsers.forEach(u => console.log(`- ID: ${u.id}, Email: ${u.email}, Name: ${u.name}`));
+      
+      return NextResponse.json({ 
+        error: "User not found. Please sign out and sign in again.",
+        sessionUserId: session.user.id,
+        availableUsers: allUsers.length
+      }, { status: 404 });
+    }
+
     const body = await request.json();
     const { patientId, date, startTime, endTime, treatmentType, description, notes } = body;
+
+    // Validate date input
+    const appointmentDate = new Date(date);
+    if (isNaN(appointmentDate.getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+    }
 
     const appointment = await (prisma as any).appointment.create({
       data: {
         patientId,
-        date: new Date(date),
+        date: appointmentDate,
         startTime,
         endTime,
         treatmentType,

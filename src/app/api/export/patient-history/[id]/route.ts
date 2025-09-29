@@ -19,13 +19,13 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: patientId } = await params;
-    console.log("Patient ID:", patientId);
+    const { id } = await params;
+    console.log("Patient ID:", id);
 
     // Fetch patient information
-    console.log("Fetching patient information for:", patientId);
+    console.log("Fetching patient information for:", id);
     const patient = await (prisma as any).patient.findUnique({
-      where: { id: patientId },
+      where: { id },
       select: {
         id: true,
         firstName: true,
@@ -53,9 +53,9 @@ export async function GET(
     }
 
     // Fetch patient's records with files and payment steps
-    console.log("Fetching records for patient:", patientId);
+    console.log("Fetching records for patient:", id);
     const records = await (prisma as any).record.findMany({
-      where: { patientId },
+      where: { patientId: id },
       include: {
         files: {
           select: {
@@ -88,9 +88,9 @@ export async function GET(
     console.log("Found records:", records.length);
 
     // Fetch patient's appointments
-    console.log("Fetching appointments for patient:", patientId);
+    console.log("Fetching appointments for patient:", id);
     const appointments = await (prisma as any).appointment.findMany({
-      where: { patientId },
+      where: { patientId: id },
       orderBy: { date: 'desc' },
     });
     console.log("Found appointments:", appointments.length);
@@ -101,7 +101,7 @@ export async function GET(
 
     // Create data with record details, file information, and payment steps
     console.log("Creating record details data with payment steps");
-    const excelData = records.map(record => {
+    const excelData = records.map((record: any) => {
       // Calculate payment totals
       const totalPaid = record.paymentSteps.reduce((sum: number, step: any) => {
         return sum + (step.isPaid ? parseFloat(step.amount.toString()) : 0);
@@ -141,10 +141,10 @@ export async function GET(
         
         // File Information
         'File Count': record.files.length,
-        'File URLs': record.files.map(file => file.fileUrl).join('; '),
-        'File Names': record.files.map(file => file.originalName).join('; '),
-        'File Sizes': record.files.map(file => file.fileSize).join('; '),
-        'File Types': record.files.map(file => file.mimeType).join('; '),
+        'File URLs': record.files.map((file: any) => file.fileUrl).join('; '),
+        'File Names': record.files.map((file: any) => file.originalName).join('; '),
+        'File Sizes': record.files.map((file: any) => file.fileSize).join('; '),
+        'File Types': record.files.map((file: any) => file.mimeType).join('; '),
       };
     });
 
@@ -185,7 +185,7 @@ export async function GET(
     console.log("Creating payment steps sheet");
     const paymentStepsData: any[] = [];
     
-    records.forEach(record => {
+    records.forEach((record: any) => {
       if (record.paymentSteps.length > 0) {
         record.paymentSteps.forEach((step: any) => {
           paymentStepsData.push({

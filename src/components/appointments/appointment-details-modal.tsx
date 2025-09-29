@@ -34,7 +34,6 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...appointment,
           status: newStatus,
           cancellationReason: newStatus === "CANCELLED" ? cancellationReason : undefined,
         }),

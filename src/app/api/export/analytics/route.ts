@@ -107,8 +107,8 @@ export async function GET(request: NextRequest) {
       { Metric: 'Total Records (Period)', Value: totalRecords },
       { Metric: 'Completed Appointments', Value: completedAppointments },
       { Metric: 'Completed Records', Value: completedRecords },
-      { Metric: 'Total Revenue', Value: formatCurrencyForExcel(revenueData._sum.cost || 0) },
-      { Metric: 'Average Record Cost', Value: formatCurrencyForExcel(revenueData._avg.cost || 0) },
+      { Metric: 'Total Revenue', Value: formatCurrencyForExcel(Number(revenueData._sum.cost) || 0) },
+      { Metric: 'Average Record Cost', Value: formatCurrencyForExcel(Number(revenueData._avg.cost) || 0) },
       { Metric: 'Period Start', Value: formatDateForExcel(start) },
       { Metric: 'Period End', Value: formatDateForExcel(end) },
     ];
@@ -117,11 +117,11 @@ export async function GET(request: NextRequest) {
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
     // Treatment statistics sheet
-    const treatmentData = treatmentStats.map(stat => ({
+    const treatmentData = treatmentStats.map((stat: any) => ({
       'Treatment Type': stat.treatmentType,
       'Count': stat._count.treatmentType,
-      'Total Revenue': formatCurrencyForExcel(stat._sum.cost || 0),
-      'Average Revenue': formatCurrencyForExcel((stat._sum.cost || 0) / stat._count.treatmentType),
+      'Total Revenue': formatCurrencyForExcel(Number(stat._sum.cost) || 0),
+      'Average Revenue': formatCurrencyForExcel((Number(stat._sum.cost) || 0) / stat._count.treatmentType),
     }));
 
     const treatmentSheet = XLSX.utils.json_to_sheet(treatmentData);

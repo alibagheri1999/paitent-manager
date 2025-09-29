@@ -68,8 +68,8 @@ export async function GET(request: NextRequest) {
 
     // Combine all revenue data
     const allRevenueData = [
-      ...recordRevenue.map(r => ({ date: r.date, cost: Number(r.cost) })),
-      ...completedAppointments.map(a => ({ 
+      ...recordRevenue.map((r: any) => ({ date: r.date, cost: Number(r.cost) })),
+      ...completedAppointments.map((a: any) => ({ 
         date: a.date, 
         cost: treatmentCosts[a.treatmentType!] || 100 
       }))

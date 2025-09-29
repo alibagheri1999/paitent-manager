@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 const appointmentSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
+  patientId: z.string().optional(), // Make patientId optional since we handle it separately
   date: z.string().min(1, "Date is required"),
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
@@ -72,6 +72,7 @@ export function AppointmentForm({ selectedDate, appointment, onClose, onSuccess 
   }, [selectedDate, setValue]);
 
   const onSubmit = async (data: AppointmentFormData) => {
+    // Validate patient selection first
     if (!selectedPatient) {
       toast.error("Please select a patient");
       return;
@@ -85,8 +86,6 @@ export function AppointmentForm({ selectedDate, appointment, onClose, onSuccess 
         patientId: selectedPatient.id,
       };
 
-      console.log("Submitting appointment data:", appointmentData);
-
       const url = appointment ? `/api/appointments/${appointment.id}` : "/api/appointments";
       const method = appointment ? "PUT" : "POST";
       
@@ -98,11 +97,8 @@ export function AppointmentForm({ selectedDate, appointment, onClose, onSuccess 
         body: JSON.stringify(appointmentData),
       });
 
-      console.log("Response status:", response.status);
-
       if (response.ok) {
         const result = await response.json();
-        console.log("Appointment saved:", result);
         toast.success(appointment ? "Appointment updated successfully" : "Appointment created successfully");
         onClose();
         // Call onSuccess callback to refresh the calendar
@@ -111,11 +107,9 @@ export function AppointmentForm({ selectedDate, appointment, onClose, onSuccess 
         }
       } else {
         const error = await response.json();
-        console.error("Error response:", error);
         toast.error(error.message || "Failed to save appointment");
       }
     } catch (error) {
-      console.error("Submission error:", error);
       toast.error("An error occurred while saving the appointment");
     } finally {
       setIsSubmitting(false);

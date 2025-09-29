@@ -52,6 +52,7 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
     totalCount: 0,
     hasNextPage: false,
     hasPrevPage: false,
+    limit: 10,
   });
 
   const fetchRecords = async (page: number = 1, search: string = "") => {
@@ -349,6 +350,10 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
                 onPageChange={handlePageChange}
+                hasNextPage={pagination.currentPage < pagination.totalPages}
+                hasPrevPage={pagination.currentPage > 1}
+                totalCount={pagination.totalCount}
+                limit={pagination.limit}
               />
             </div>
           )}

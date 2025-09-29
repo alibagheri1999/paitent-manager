@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,8 +14,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const patient = await prisma.patient.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         records: {
           orderBy: { date: "desc" },
@@ -42,7 +43,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -51,6 +52,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const {
       firstName,
@@ -75,7 +77,7 @@ export async function PUT(
       const existingPatient = await prisma.patient.findFirst({
         where: {
           nationalId,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -88,7 +90,7 @@ export async function PUT(
     }
 
     const patient = await (prisma as any).patient.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         firstName,
         lastName,
@@ -120,7 +122,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -129,9 +131,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     // Soft delete - set isActive to false
     const patient = await prisma.patient.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false },
     });
 

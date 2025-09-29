@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-
+    
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -66,7 +66,7 @@ export async function GET(
       if (matchingTreatmentTypes.length > 0) {
         searchConditions.push({
           treatmentType: { in: matchingTreatmentTypes }
-        });
+        } as any);
       }
 
       whereClause.OR = searchConditions;

@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const allPaymentSteps = await prisma.paymentStep.findMany({
       where: {
         recordId: {
-          in: unpaidRecords.map(record => record.id)
+          in: unpaidRecords.map((record: any) => record.id)
         }
       },
       select: {
@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
     console.log(`Found ${allPaymentSteps.length} payment steps`);
 
     // Calculate debt amounts for each patient
-    const debtReport = allPatients.map(patient => {
-      const patientRecords = unpaidRecords.filter(record => record.patientId === patient.id);
+    const debtReport = allPatients.map((patient: any) => {
+      const patientRecords = unpaidRecords.filter((record: any) => record.patientId === patient.id);
       
       if (patientRecords.length === 0) {
         return null; // No debts for this patient
@@ -80,8 +80,8 @@ export async function GET(request: NextRequest) {
       let totalDebt = 0;
       let unpaidRecordsCount = 0;
 
-      const recordsWithDebts = patientRecords.map(record => {
-        const recordPaymentSteps = allPaymentSteps.filter(step => step.recordId === record.id);
+      const recordsWithDebts = patientRecords.map((record: any) => {
+        const recordPaymentSteps = allPaymentSteps.filter((step: any) => step.recordId === record.id);
         
         let recordDebt = 0;
         
@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
           }
         } else {
           // Has payment steps - calculate from unpaid steps
-          const unpaidSteps = recordPaymentSteps.filter(step => !step.isPaid);
-          recordDebt = unpaidSteps.reduce((sum, step) => sum + Number(step.amount), 0);
+          const unpaidSteps = recordPaymentSteps.filter((step: any) => !step.isPaid);
+          recordDebt = unpaidSteps.reduce((sum: any, step: any) => sum + Number(step.amount), 0);
           
           if (recordDebt > 0) {
             unpaidRecordsCount++;
@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
           paymentStatus: record.paymentStatus,
           recordDebt: recordDebt,
           unpaidSteps: recordPaymentSteps
-            .filter(step => !step.isPaid)
-            .map(step => ({
+            .filter((step: any) => !step.isPaid)
+            .map((step: any) => ({
               stepNumber: step.stepNumber,
               amount: Number(step.amount),
               dueDate: step.dueDate,
@@ -133,18 +133,18 @@ export async function GET(request: NextRequest) {
         patientEmail: patient.email,
         totalDebt: totalDebt,
         unpaidRecords: unpaidRecordsCount,
-        records: recordsWithDebts.filter(record => record.recordDebt > 0)
+        records: recordsWithDebts.filter((record: any) => record.recordDebt > 0)
       };
-    }).filter(patient => patient !== null);
+    }).filter((patient: any) => patient !== null);
 
     console.log(`Found ${debtReport.length} patients with debts`);
 
     // Sort by total debt (highest first)
-    debtReport.sort((a, b) => b.totalDebt - a.totalDebt);
+    debtReport.sort((a: any, b: any) => b.totalDebt - a.totalDebt);
 
     const result = {
       totalPatientsWithDebts: debtReport.length,
-      totalDebtAmount: debtReport.reduce((sum, patient) => sum + patient.totalDebt, 0),
+      totalDebtAmount: debtReport.reduce((sum: any, patient: any) => sum + patient.totalDebt, 0),
       patients: debtReport
     };
 

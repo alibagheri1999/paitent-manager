@@ -20,8 +20,15 @@ interface Patient {
   phone?: string;
   nationalId?: string;
   dateOfBirth?: string;
+  address?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  medicalHistory?: string;
+  allergies?: string;
+  notes?: string;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface PaginationInfo {

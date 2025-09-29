@@ -210,8 +210,8 @@ async function main() {
     const endMinute = (startMinute + (duration % 60)) % 60;
     const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
     
-    const status = getRandomItem(appointmentStatuses);
-    const treatmentType = getRandomItem(treatments);
+    const status = getRandomItem(appointmentStatuses) as any;
+    const treatmentType = getRandomItem(treatments) as any;
     
     const descriptions = {
       'CONSULTATION': 'Initial consultation and examination',
@@ -265,7 +265,7 @@ async function main() {
   const records = [];
   for (let i = 0; i < 300; i++) {
     const patient = getRandomItem(patients);
-    const treatmentType = getRandomItem(treatments);
+    const treatmentType = getRandomItem(treatments) as any;
     const date = getRandomDate(sixMonthsAgo, today);
     
     const costRanges = {

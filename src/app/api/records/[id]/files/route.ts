@@ -16,12 +16,12 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: recordId } = await params;
+    const { id } = await params;
 
     // Verify the record exists
     const record = await prisma.record.findUnique({
       where: {
-        id: recordId,
+        id,
       },
     });
 
@@ -77,10 +77,10 @@ export async function POST(
     const fullObjectName = urlParts.slice(-2).join('/'); // records/filename
 
     // Save file record to database
-    console.log("Saving file record to database:", recordId, file.name);
+    console.log("Saving file record to database:", id, file.name);
     const recordFile = await (prisma as any).recordFile.create({
       data: {
-        recordId,
+        recordId: id,
         fileName: fullObjectName, // Store the full object path
         originalName: file.name,
         fileSize: file.size,

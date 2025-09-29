@@ -442,7 +442,7 @@ export function PatientManagementPanel({ patient, onClose, onRefresh }: PatientM
                 <CardContent>
                   {isCreatingRecord ? (
                     <RecordForm
-                      patientId={patient.id}
+                      defaultPatientId={patient.id}
                       record={editingRecord}
                       onClose={() => {
                         setIsCreatingRecord(false);

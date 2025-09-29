@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Group by date and count
-    const groupedData = patientData.reduce((acc: any, patient) => {
+    const groupedData = patientData.reduce((acc: any, patient: any) => {
       const date = patient.createdAt.toISOString().split('T')[0];
       if (!acc[date]) {
         acc[date] = 0;

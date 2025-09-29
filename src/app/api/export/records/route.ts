@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data for Excel export
-    const excelData = records.map(record => ({
+    const excelData = records.map((record: any) => ({
       'Record ID': record.id,
       'Patient Name': `${record.patient.firstName} ${record.patient.lastName}`,
       'Patient Email': record.patient.email,
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       'Date': formatDateForExcel(record.date),
       'Treatment Type': record.treatmentType,
       'Description': record.description,
-      'Cost': formatCurrencyForExcel(record.cost),
+      'Cost': formatCurrencyForExcel(Number(record.cost)),
       'Status': record.isCompleted ? 'Completed' : 'Pending',
       'Notes': record.notes || '',
       'File URLs': formatFileUrls(record.files),

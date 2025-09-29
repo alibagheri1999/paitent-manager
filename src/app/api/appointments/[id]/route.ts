@@ -51,7 +51,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { patientId, date, startTime, endTime, treatmentType, description, notes, status } = body;
+    const { patientId, date, startTime, endTime, treatmentType, description, notes, status, start, end } = body;
 
     const appointment = await prisma.appointment.findUnique({
       where: { id },
@@ -62,28 +62,60 @@ export async function PUT(
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
+    // Handle different date formats - support both 'date' field and 'start/end' ISO strings
+    let appointmentDate: Date;
+    let finalStartTime: string;
+    let finalEndTime: string;
+
+    // Only update date/time if explicitly provided, otherwise keep existing values
+    if (start && end) {
+      // Handle ISO date format from calendar (e.g., "2025-09-26T07:00:00.000Z")
+      appointmentDate = new Date(start);
+      finalStartTime = new Date(start).toISOString().split('T')[1].substring(0, 5);
+      finalEndTime = new Date(end).toISOString().split('T')[1].substring(0, 5);
+    } else if (date) {
+      // Handle separate date and time fields
+      appointmentDate = new Date(date);
+      finalStartTime = startTime || appointment.startTime;
+      finalEndTime = endTime || appointment.endTime;
+    } else {
+      // Keep existing appointment data (for status-only updates)
+      appointmentDate = appointment.date;
+      finalStartTime = appointment.startTime;
+      finalEndTime = appointment.endTime;
+    }
+
+    // Validate date input
+    if (isNaN(appointmentDate.getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+    }
+
     // Check if appointment is being cancelled
     const isBeingCancelled = status === "CANCELLED" && appointment.status !== "CANCELLED";
     
     // Check if appointment is being rescheduled
     const isBeingRescheduled = (
-      appointment.date.toISOString().split('T')[0] !== new Date(date).toISOString().split('T')[0] ||
-      appointment.startTime !== startTime
+      appointment.date.toISOString().split('T')[0] !== appointmentDate.toISOString().split('T')[0] ||
+      appointment.startTime !== finalStartTime
     ) && appointment.status !== "CANCELLED";
     
+    // Build update data object with only provided fields
+    const updateData: any = {
+      status,
+    };
+
+    // Only include fields that are explicitly provided
+    if (patientId !== undefined) updateData.patientId = patientId;
+    if (date !== undefined) updateData.date = appointmentDate;
+    if (startTime !== undefined) updateData.startTime = finalStartTime;
+    if (endTime !== undefined) updateData.endTime = finalEndTime;
+    if (treatmentType !== undefined) updateData.treatmentType = treatmentType;
+    if (description !== undefined) updateData.description = description;
+    if (notes !== undefined) updateData.notes = notes;
+
     const updatedAppointment = await (prisma as any).appointment.update({
       where: { id },
-      data: {
-        patientId,
-        date: new Date(date),
-        startTime,
-        endTime,
-        treatmentType,
-        description,
-        notes,
-        status,
-        userId: session.user.id,
-      },
+      data: updateData,
       include: {
         patient: {
           select: {
@@ -118,7 +150,7 @@ export async function PUT(
     // Send SMS notification if appointment is rescheduled
     if (isBeingRescheduled && appointment.patient) {
       const oldDate = new Date(appointment.date).toLocaleDateString();
-      const newDate = new Date(date).toLocaleDateString();
+      const newDate = appointmentDate.toLocaleDateString();
       const reason = body.rescheduleReason || "No specific reason provided";
       
       try {

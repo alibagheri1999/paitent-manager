@@ -4,13 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3002",
+    "dev:prod": "next dev --turbopack --port 3002 --env-file .env.production",
     "build": "next build --turbopack",
+    "build:prod": "next build --turbopack --env-file .env.production",
     "start": "next start",
+    "start:prod": "next start --env-file .env.production",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "docker:dev": "docker-compose up --build",
+    "docker:prod": "docker-compose --env-file .env.production up --build",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.15",

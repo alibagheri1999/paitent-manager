@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendSMS } from "@/lib/sms";
+import { smsService } from "@/lib/sms";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { message } = await request.json();
 
     if (!message || message.trim().length === 0) {
@@ -48,7 +48,10 @@ export async function POST(
     const fullMessage = `Message from ${session.user?.name || 'Dental Clinic'}: ${message.trim()}`;
     
     try {
-      await sendSMS(patient.phone, fullMessage);
+      await smsService.sendSMS({
+        to: patient.phone,
+        message: fullMessage
+      });
       
       return NextResponse.json({
         success: true,

@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data for Excel export
-    const excelData = appointments.map(appointment => ({
+    const excelData = appointments.map((appointment: any) => ({
       'Appointment ID': appointment.id,
       'Patient Name': `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       'Patient Email': appointment.patient.email,

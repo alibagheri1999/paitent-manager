@@ -42,14 +42,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data for Excel export
-    const excelData = patients.map(patient => ({
+    const excelData = patients.map((patient: any) => ({
       'Patient ID': patient.id,
       'First Name': patient.firstName,
       'Last Name': patient.lastName,
       'Email': patient.email,
       'Phone': patient.phone,
       'Date of Birth': patient.dateOfBirth ? formatDateForExcel(patient.dateOfBirth) : '',
-      'Gender': patient.gender,
       'Address': patient.address || '',
       'Emergency Contact': patient.emergencyContact || '',
       'Emergency Phone': patient.emergencyPhone || '',

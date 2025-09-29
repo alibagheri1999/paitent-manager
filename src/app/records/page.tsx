@@ -12,15 +12,31 @@ import { Plus, Search } from "lucide-react";
 
 interface Record {
   id: string;
+  patientId: string;
   patient: {
     firstName: string;
     lastName: string;
+    phone?: string;
+    email?: string;
   };
   treatmentType: string;
   description: string;
   cost: number;
   date: string;
+  notes?: string;
   isCompleted: boolean;
+  paymentStatus?: string;
+  paymentType?: string;
+  files?: {
+    id: string;
+    fileName: string;
+    originalName: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: string;
+  }[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface PaginationInfo {

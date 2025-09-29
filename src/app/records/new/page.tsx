@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { RecordForm } from "@/components/records/record-form";
 
-export default function NewRecordPage() {
+function NewRecordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientId = searchParams.get("patientId");
@@ -62,5 +62,13 @@ export default function NewRecordPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function NewRecordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewRecordContent />
+    </Suspense>
   );
 }

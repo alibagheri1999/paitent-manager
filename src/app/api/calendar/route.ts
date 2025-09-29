@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Group appointments by date
-    const appointmentsByDate = appointments.reduce((acc: any, appointment) => {
+    const appointmentsByDate = appointments.reduce((acc: any, appointment: any) => {
       const dateKey = appointment.date.toISOString().split('T')[0];
       if (!acc[dateKey]) {
         acc[dateKey] = [];
@@ -139,10 +139,10 @@ export async function GET(request: NextRequest) {
     // Calculate statistics
     const stats = {
       totalAppointments: appointments.length,
-      scheduled: appointments.filter(apt => apt.status === "SCHEDULED").length,
-      completed: appointments.filter(apt => apt.status === "COMPLETED").length,
-      cancelled: appointments.filter(apt => apt.status === "CANCELLED").length,
-      noShow: appointments.filter(apt => apt.status === "NO_SHOW").length,
+      scheduled: appointments.filter((apt: any) => apt.status === "SCHEDULED").length,
+      completed: appointments.filter((apt: any) => apt.status === "COMPLETED").length,
+      cancelled: appointments.filter((apt: any) => apt.status === "CANCELLED").length,
+      noShow: appointments.filter((apt: any) => apt.status === "NO_SHOW").length,
     };
 
     return NextResponse.json({

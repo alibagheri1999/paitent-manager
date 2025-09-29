@@ -7,7 +7,10 @@ import { PatientForm } from "@/components/patients/patient-form";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { ExportButton } from "@/components/ui/export-button";
+import { Plus, Search, DollarSign } from "lucide-react";
+import { DebtReport } from "@/components/debts/debt-report";
+import { PatientDebtOverview } from "@/components/debts/patient-debt-overview";
 
 interface Patient {
   id: string;
@@ -116,10 +119,19 @@ export default function PatientsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Patients</h1>
             <p className="text-gray-600">Manage your dental clinic patients</p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Patient
-          </Button>
+          <div className="flex items-center space-x-2">
+            <ExportButton
+              exportType="patients"
+              filename="patients_export"
+              variant="outline"
+            >
+              Export Patients
+            </ExportButton>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Patient
+            </Button>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -138,6 +150,20 @@ export default function PatientsPage() {
             Search
           </Button>
         </form>
+
+        {/* Debt Overview Section */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+              <DollarSign className="h-5 w-5 text-red-600" />
+              <span>Patient Debt Overview</span>
+            </h2>
+            <p className="text-gray-600 mt-1">Quick overview of patients with outstanding payments</p>
+          </div>
+          <div className="p-6">
+            <PatientDebtOverview />
+          </div>
+        </div>
 
         <PatientList 
           patients={patients} 

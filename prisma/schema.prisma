@@ -41,6 +41,17 @@ enum TreatmentType {
   OTHER
 }
 
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum PaymentType {
+  FULL_PAYMENT
+  INSTALLMENT
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -84,6 +95,7 @@ model User {
   patients   Patient[]
   records    Record[]
   appointments Appointment[]
+  paymentSteps PaymentStep[]
 }
 
 model VerificationToken {
@@ -107,6 +119,9 @@ model Patient {
   emergencyPhone   String?
   medicalHistory   String?
   allergies        String?
+  insuranceProvider String?
+  insuranceNumber  String?
+  insuranceGroup   String?
   notes            String?
   isActive         Boolean @default(true)
   createdAt        DateTime @default(now())
@@ -133,6 +148,8 @@ model Record {
   date        DateTime
   notes       String?
   isCompleted Boolean       @default(false)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentType   PaymentType?    @default(FULL_PAYMENT)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -140,11 +157,53 @@ model Record {
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   userId  String
   user    User    @relation(fields: [userId], references: [id])
+  files   RecordFile[]
+  paymentSteps PaymentStep[]
 
   @@index([patientId])
   @@index([date])
   @@index([treatmentType])
   @@index([cost])
+  @@index([paymentStatus])
+}
+
+model RecordFile {
+  id        String   @id @default(cuid())
+  recordId  String
+  fileName  String
+  originalName String
+  fileSize  Int
+  mimeType  String
+  fileUrl   String
+  uploadedAt DateTime @default(now())
+
+  // Relations
+  record Record @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId])
+}
+
+model PaymentStep {
+  id          String   @id @default(cuid())
+  recordId    String
+  stepNumber  Int
+  amount      Decimal  @db.Decimal(10, 2)
+  dueDate     DateTime?
+  isPaid      Boolean  @default(false)
+  paidDate    DateTime?
+  paymentMethod String? // Cash, Card, Insurance, etc.
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  record      Record   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([recordId])
+  @@index([dueDate])
+  @@index([isPaid])
 }
 
 model Appointment {

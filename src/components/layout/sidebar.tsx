@@ -13,6 +13,7 @@ import {
   LogOut,
   UserCheck,
   Stethoscope,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
@@ -21,6 +22,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Patients", href: "/patients", icon: Users },
   { name: "Appointments", href: "/appointments", icon: Calendar },
+  { name: "Records", href: "/records", icon: FileText },
+  { name: "Debts", href: "/debts", icon: DollarSign },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Staff", href: "/staff", icon: UserCheck },
   { name: "Settings", href: "/settings", icon: Settings },

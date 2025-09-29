@@ -64,6 +64,9 @@ export async function PUT(
       emergencyPhone,
       medicalHistory,
       allergies,
+      insuranceProvider,
+      insuranceNumber,
+      insuranceGroup,
       notes,
     } = body;
 
@@ -84,7 +87,7 @@ export async function PUT(
       }
     }
 
-    const patient = await prisma.patient.update({
+    const patient = await (prisma as any).patient.update({
       where: { id: params.id },
       data: {
         firstName,
@@ -98,6 +101,9 @@ export async function PUT(
         emergencyPhone: emergencyPhone || null,
         medicalHistory: medicalHistory || null,
         allergies: allergies || null,
+        insuranceProvider: insuranceProvider || null,
+        insuranceNumber: insuranceNumber || null,
+        insuranceGroup: insuranceGroup || null,
         notes: notes || null,
       },
     });

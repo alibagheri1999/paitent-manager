@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
       const searchTerms = search.trim().split(/\s+/);
       
       // Create search conditions - NO treatmentType contains!
-      const searchConditions = [
+      const searchConditions: any[] = [
         { description: { contains: search, mode: "insensitive" } },
         { notes: { contains: search, mode: "insensitive" } },
       ];
 
       // Handle patient name search
-      const patientSearchConditions = [
+      const patientSearchConditions: any[] = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } }
       ];
@@ -98,6 +98,15 @@ export async function GET(request: NextRequest) {
               lastName: true,
             },
           },
+          files: {
+            select: {
+              id: true,
+              originalName: true,
+              fileSize: true,
+              mimeType: true,
+              uploadedAt: true,
+            },
+          } as any,
         },
         orderBy: {
           date: "desc",
@@ -166,7 +175,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    const record = await prisma.record.create({
+    const record = await (prisma as any).record.create({
       data: {
         patientId,
         treatmentType,
@@ -184,6 +193,15 @@ export async function POST(request: NextRequest) {
             lastName: true,
           },
         },
+        files: {
+          select: {
+            id: true,
+            originalName: true,
+            fileSize: true,
+            mimeType: true,
+            uploadedAt: true,
+          },
+        } as any,
       },
     });
 

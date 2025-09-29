@@ -5,13 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Calendar, Tag, DollarSign, FileText, MessageSquare, Clock, CheckCircle, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, User, Calendar, Tag, DollarSign, FileText, MessageSquare, Clock, CheckCircle, Edit, Trash2, Download, Paperclip } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
+import { RecordForm } from "@/components/records/record-form";
 
 interface Record {
   id: string;
   patient: {
+    id: string;
     firstName: string;
     lastName: string;
   };
@@ -23,6 +25,13 @@ interface Record {
   isCompleted: boolean;
   createdAt: string;
   updatedAt: string;
+  files?: {
+    id: string;
+    originalName: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt: string;
+  }[];
 }
 
 export default function RecordDetailPage() {
@@ -32,6 +41,7 @@ export default function RecordDetailPage() {
   
   const [record, setRecord] = useState<Record | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -84,8 +94,8 @@ export default function RecordDetailPage() {
   };
 
   const handleEdit = () => {
-    // Navigate to edit page or open edit modal
-    router.push(`/records/${recordId}/edit`);
+    // Open edit modal
+    setShowEditModal(true);
   };
 
   const handleDelete = async () => {
@@ -97,7 +107,7 @@ export default function RecordDetailPage() {
         
         if (response.ok) {
           toast.success("Record deleted successfully");
-          router.push("/records");
+          router.push(`/patients/${record?.patient.id}/history`);
         } else {
           toast.error("Failed to delete record");
         }
@@ -105,6 +115,45 @@ export default function RecordDetailPage() {
         console.error("Failed to delete record:", error);
         toast.error("Failed to delete record");
       }
+    }
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditModal(false);
+    // Refresh the record data
+    const fetchRecord = async () => {
+      try {
+        const response = await fetch(`/api/records/${recordId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecord(data);
+        }
+      } catch (error) {
+        console.error("Error fetching record:", error);
+      }
+    };
+    fetchRecord();
+  };
+
+  const handleDownloadFile = async (fileId: string, fileName: string) => {
+    try {
+      const response = await fetch(`/api/records/${recordId}/files/${fileId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        toast.error("Failed to download file");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file");
     }
   };
 
@@ -137,11 +186,11 @@ export default function RecordDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push("/records")}
+              onClick={() => router.push(`/patients/${record.patient.id}/history`)}
               className="flex items-center space-x-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Records</span>
+              <span>Back to Patient</span>
             </Button>
             <h1 className="text-3xl font-bold text-gray-900">Treatment Record</h1>
           </div>
@@ -223,6 +272,40 @@ export default function RecordDetailPage() {
             </div>
           )}
 
+          {/* Files Section */}
+          {record.files && record.files.length > 0 && (
+            <div className="pt-4 border-t mt-4 space-y-3">
+              <h3 className="font-semibold text-lg flex items-center space-x-2">
+                <Paperclip className="h-5 w-5" />
+                <span>Attached Files</span>
+              </h3>
+              <div className="space-y-2">
+                {record.files.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <Paperclip className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">{file.originalName}</p>
+                        <p className="text-sm text-gray-500">
+                          {(file.fileSize / 1024).toFixed(1)} KB • {formatDate(new Date(file.uploadedAt))}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadFile(file.id, file.originalName)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="pt-4 border-t mt-4 space-y-3">
             <h3 className="font-semibold text-lg">System Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
@@ -240,6 +323,16 @@ export default function RecordDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      {showEditModal && record && (
+        <RecordForm
+          record={record}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+          defaultPatientId={record.patient.id}
+        />
+      )}
     </div>
   );
 }

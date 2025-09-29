@@ -21,10 +21,20 @@ export async function GET(
       include: {
         patient: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
           },
         },
+        files: {
+          select: {
+            id: true,
+            originalName: true,
+            fileSize: true,
+            mimeType: true,
+            uploadedAt: true,
+          },
+        } as any,
       },
     });
 
@@ -86,7 +96,7 @@ export async function PUT(
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    const record = await prisma.record.update({
+    const record = await (prisma as any).record.update({
       where: { id },
       data: {
         patientId,
@@ -101,10 +111,20 @@ export async function PUT(
       include: {
         patient: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
           },
         },
+        files: {
+          select: {
+            id: true,
+            originalName: true,
+            fileSize: true,
+            mimeType: true,
+            uploadedAt: true,
+          },
+        } as any,
       },
     });
 

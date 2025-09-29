@@ -22,6 +22,9 @@ const patientSchema = z.object({
   emergencyPhone: z.string().optional(),
   medicalHistory: z.string().optional(),
   allergies: z.string().optional(),
+  insuranceProvider: z.string().optional(),
+  insuranceNumber: z.string().optional(),
+  insuranceGroup: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -55,6 +58,9 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
       emergencyPhone: patient.emergencyPhone || "",
       medicalHistory: patient.medicalHistory || "",
       allergies: patient.allergies || "",
+      insuranceProvider: patient.insuranceProvider || "",
+      insuranceNumber: patient.insuranceNumber || "",
+      insuranceGroup: patient.insuranceGroup || "",
       notes: patient.notes || "",
     } : {},
   });
@@ -73,6 +79,9 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
         emergencyPhone: patient.emergencyPhone || "",
         medicalHistory: patient.medicalHistory || "",
         allergies: patient.allergies || "",
+        insuranceProvider: patient.insuranceProvider || "",
+        insuranceNumber: patient.insuranceNumber || "",
+        insuranceGroup: patient.insuranceGroup || "",
         notes: patient.notes || "",
       });
     }
@@ -249,6 +258,43 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
                 rows={3}
                 placeholder="Enter known allergies"
               />
+            </div>
+
+            {/* Insurance Information Section */}
+            <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Insurance Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Insurance Provider
+                  </label>
+                  <Input
+                    {...register("insuranceProvider")}
+                    placeholder="e.g., Blue Cross, Aetna, Cigna"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Insurance Number
+                  </label>
+                  <Input
+                    {...register("insuranceNumber")}
+                    placeholder="Insurance policy number"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Group Number
+                </label>
+                <Input
+                  {...register("insuranceGroup")}
+                  placeholder="Group or plan number"
+                />
+              </div>
             </div>
 
             <div>

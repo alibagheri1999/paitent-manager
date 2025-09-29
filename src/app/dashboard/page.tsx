@@ -2,8 +2,8 @@
 
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { RecentAppointments } from "@/components/dashboard/recent-appointments";
-import { UpcomingAppointments } from "@/components/dashboard/upcoming-appointments";
+import { TodayAppointments } from "@/components/dashboard/recent-appointments";
+import { TomorrowAppointments } from "@/components/dashboard/upcoming-appointments";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 
 export default function Dashboard() {
@@ -18,8 +18,8 @@ export default function Dashboard() {
         <StatsCards />
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecentAppointments />
-          <UpcomingAppointments />
+          <TodayAppointments />
+          <TomorrowAppointments />
         </div>
         
         <RevenueChart />

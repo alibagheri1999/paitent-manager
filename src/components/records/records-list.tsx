@@ -155,6 +155,7 @@ export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsLi
         <RecordDetailsModal
           record={viewingRecord}
           onClose={() => setViewingRecord(null)}
+          onRefresh={onRefresh}
         />
       )}
     </Card>

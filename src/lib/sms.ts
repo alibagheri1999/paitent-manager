@@ -91,6 +91,23 @@ class SMSService {
       message: message
     });
   }
+
+  async sendAppointmentReschedule(
+    patientPhone: string,
+    patientName: string,
+    oldDate: string,
+    oldTime: string,
+    newDate: string,
+    newTime: string,
+    reason?: string
+  ): Promise<boolean> {
+    const message = `Dear ${patientName}, your dental appointment has been rescheduled from ${oldDate} at ${oldTime} to ${newDate} at ${newTime}. ${reason ? `Reason: ${reason}` : 'We apologize for any inconvenience.'} - Dental Clinic`;
+
+    return this.sendSMS({
+      to: patientPhone,
+      message: message
+    });
+  }
 }
 
 // Create singleton instance

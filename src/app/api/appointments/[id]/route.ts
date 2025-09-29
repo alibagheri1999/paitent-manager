@@ -6,7 +6,7 @@ import { smsService } from "@/lib/sms";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,8 +15,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         patient: true,
       },
@@ -38,7 +40,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -47,11 +49,12 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { patientId, date, startTime, endTime, treatmentType, description, notes, status } = body;
 
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { patient: true },
     });
 
@@ -62,8 +65,14 @@ export async function PUT(
     // Check if appointment is being cancelled
     const isBeingCancelled = status === "CANCELLED" && appointment.status !== "CANCELLED";
     
-    const updatedAppointment = await prisma.appointment.update({
-      where: { id: params.id },
+    // Check if appointment is being rescheduled
+    const isBeingRescheduled = (
+      appointment.date.toISOString().split('T')[0] !== new Date(date).toISOString().split('T')[0] ||
+      appointment.startTime !== startTime
+    ) && appointment.status !== "CANCELLED";
+    
+    const updatedAppointment = await (prisma as any).appointment.update({
+      where: { id },
       data: {
         patientId,
         date: new Date(date),
@@ -80,6 +89,7 @@ export async function PUT(
           select: {
             firstName: true,
             lastName: true,
+            phone: true,
           },
         },
       },
@@ -92,15 +102,38 @@ export async function PUT(
       
       try {
         await smsService.sendAppointmentCancellation(
-          appointment.patient.phone,
+          appointment.patient.phone || "",
           `${appointment.patient.firstName} ${appointment.patient.lastName}`,
           appointmentDate,
           appointment.startTime,
           reason
         );
-        console.log(`📱 SMS notification sent for cancelled appointment: ${params.id}`);
+        console.log(`📱 SMS notification sent for cancelled appointment: ${id}`);
       } catch (smsError) {
         console.error("Failed to send cancellation SMS:", smsError);
+        // Don't fail the request if SMS fails
+      }
+    }
+
+    // Send SMS notification if appointment is rescheduled
+    if (isBeingRescheduled && appointment.patient) {
+      const oldDate = new Date(appointment.date).toLocaleDateString();
+      const newDate = new Date(date).toLocaleDateString();
+      const reason = body.rescheduleReason || "No specific reason provided";
+      
+      try {
+        await smsService.sendAppointmentReschedule(
+          appointment.patient.phone || "",
+          `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+          oldDate,
+          appointment.startTime,
+          newDate,
+          startTime,
+          reason
+        );
+        console.log(`📱 SMS notification sent for rescheduled appointment: ${id}`);
+      } catch (smsError) {
+        console.error("Failed to send reschedule SMS:", smsError);
         // Don't fail the request if SMS fails
       }
     }
@@ -117,7 +150,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -126,8 +159,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { patient: true },
     });
 
@@ -141,13 +176,13 @@ export async function DELETE(
       
       try {
         await smsService.sendAppointmentCancellation(
-          appointment.patient.phone,
+          appointment.patient.phone || "",
           `${appointment.patient.firstName} ${appointment.patient.lastName}`,
           appointmentDate,
           appointment.startTime,
           "Appointment cancelled by clinic"
         );
-        console.log(`📱 SMS notification sent for deleted appointment: ${params.id}`);
+        console.log(`📱 SMS notification sent for deleted appointment: ${id}`);
       } catch (smsError) {
         console.error("Failed to send deletion SMS:", smsError);
         // Continue with deletion even if SMS fails
@@ -155,7 +190,7 @@ export async function DELETE(
     }
 
     await prisma.appointment.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "Appointment deleted successfully" });

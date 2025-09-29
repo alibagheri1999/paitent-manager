@@ -13,7 +13,7 @@ import { toast } from "sonner";
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().optional(),
   role: z.string().min(1, "Role is required"),
 });
 
@@ -50,6 +50,13 @@ export function StaffForm({ staff, onClose, onSuccess }: StaffFormProps) {
     try {
       const url = staff ? `/api/staff/${staff.id}` : "/api/staff";
       const method = staff ? "PUT" : "POST";
+      
+      // For new staff, password is required
+      if (!staff && (!data.password || data.password.trim() === "")) {
+        toast.error("Password is required for new staff members");
+        setIsSubmitting(false);
+        return;
+      }
       
       const response = await fetch(url, {
         method,

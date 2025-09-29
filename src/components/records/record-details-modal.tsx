@@ -1,14 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, User, Calendar, DollarSign, FileText, Clock, CheckCircle } from "lucide-react";
+import { X, User, Calendar, DollarSign, FileText, Clock, CheckCircle, Edit, Trash2, Download, Paperclip } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { RecordForm } from "./record-form";
+import { PaymentStepsManager } from "@/components/payments/payment-steps-manager";
+import { toast } from "sonner";
 
 interface Record {
   id: string;
   patient: {
+    id: string;
     firstName: string;
     lastName: string;
   };
@@ -18,16 +23,80 @@ interface Record {
   date: string;
   notes?: string;
   isCompleted: boolean;
+  paymentStatus?: string;
+  paymentType?: string;
   createdAt: string;
   updatedAt: string;
+  files?: {
+    id: string;
+    originalName: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt: string;
+  }[];
 }
 
 interface RecordDetailsModalProps {
   record: Record;
   onClose: () => void;
+  onRefresh?: () => void;
 }
 
-export function RecordDetailsModal({ record, onClose }: RecordDetailsModalProps) {
+export function RecordDetailsModal({ record, onClose, onRefresh }: RecordDetailsModalProps) {
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (confirm("Are you sure you want to delete this record?")) {
+      try {
+        const response = await fetch(`/api/records/${record.id}`, {
+          method: "DELETE",
+        });
+        
+        if (response.ok) {
+          toast.success("Record deleted successfully");
+          onClose();
+          if (onRefresh) onRefresh();
+        } else {
+          toast.error("Failed to delete record");
+        }
+      } catch (error) {
+        console.error("Failed to delete record:", error);
+        toast.error("Failed to delete record");
+      }
+    }
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditModal(false);
+    if (onRefresh) onRefresh();
+  };
+
+  const handleDownloadFile = async (fileId: string, fileName: string) => {
+    try {
+      const response = await fetch(`/api/records/${record.id}/files/${fileId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        toast.error("Failed to download file");
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file");
+    }
+  };
+
   const getTreatmentTypeColor = (type: string) => {
     switch (type) {
       case "CONSULTATION":
@@ -63,9 +132,23 @@ export function RecordDetailsModal({ record, onClose }: RecordDetailsModalProps)
             <FileText className="h-5 w-5" />
             <span>Treatment Record Details</span>
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button onClick={handleEdit} className="flex items-center space-x-2">
+              <Edit className="h-4 w-4" />
+              <span>Edit</span>
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              className="flex items-center space-x-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Patient Information */}
@@ -141,6 +224,31 @@ export function RecordDetailsModal({ record, onClose }: RecordDetailsModalProps)
             </div>
           </div>
 
+          {/* Payment Information */}
+          <div className="mt-6 pt-6 border-t">
+            <h3 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+              <DollarSign className="h-4 w-4" />
+              <span>Payment Management</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600">Payment Status</label>
+                <p className="text-gray-900">{record.paymentStatus || "UNPAID"}</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600">Payment Type</label>
+                <p className="text-gray-900">{record.paymentType || "FULL_PAYMENT"}</p>
+              </div>
+            </div>
+            
+            {/* Payment Steps Manager */}
+            <PaymentStepsManager
+              recordId={record.id}
+              recordCost={record.cost}
+              onUpdate={onRefresh}
+            />
+          </div>
+
           {/* System Information */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center space-x-2">
@@ -159,6 +267,40 @@ export function RecordDetailsModal({ record, onClose }: RecordDetailsModalProps)
             </div>
           </div>
 
+          {/* Files Section */}
+          {record.files && record.files.length > 0 && (
+            <div className="pt-4 border-t mt-4 space-y-3">
+              <h3 className="font-semibold text-lg flex items-center space-x-2">
+                <Paperclip className="h-5 w-5" />
+                <span>Attached Files</span>
+              </h3>
+              <div className="space-y-2">
+                {record.files.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <Paperclip className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">{file.originalName}</p>
+                        <p className="text-sm text-gray-500">
+                          {(file.fileSize / 1024).toFixed(1)} KB • {formatDate(new Date(file.uploadedAt))}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadFile(file.id, file.originalName)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="pt-4 border-t mt-6">
             <div className="flex justify-end">
@@ -169,6 +311,16 @@ export function RecordDetailsModal({ record, onClose }: RecordDetailsModalProps)
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      {showEditModal && record && (
+        <RecordForm
+          record={record}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+          defaultPatientId={record.patient.id}
+        />
+      )}
     </div>
   );
 }

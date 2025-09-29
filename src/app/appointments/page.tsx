@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { AppointmentCalendar } from "@/components/appointments/appointment-calendar";
 import { AppointmentForm } from "@/components/appointments/appointment-form";
 import { AppointmentDetailsModal } from "@/components/appointments/appointment-details-modal";
+import { ExportButton } from "@/components/ui/export-button";
 import { useState } from "react";
 
 export default function AppointmentsPage() {
@@ -39,9 +40,18 @@ export default function AppointmentsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-          <p className="text-gray-600">Manage your dental clinic appointments</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
+            <p className="text-gray-600">Manage your dental clinic appointments</p>
+          </div>
+          <ExportButton
+            exportType="appointments"
+            filename="appointments_export"
+            variant="outline"
+          >
+            Export Appointments
+          </ExportButton>
         </div>
 
         <AppointmentCalendar 

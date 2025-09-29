@@ -21,6 +21,9 @@ interface Patient {
   emergencyPhone?: string;
   medicalHistory?: string;
   allergies?: string;
+  insuranceProvider?: string;
+  insuranceNumber?: string;
+  insuranceGroup?: string;
   notes?: string;
   isActive: boolean;
   createdAt: string;
@@ -189,12 +192,43 @@ export function PatientDetailsModal({ patient, onClose }: PatientDetailsModalPro
                   {patient.allergies || "No known allergies"}
                 </p>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-600">Notes</label>
-                <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                  {patient.notes || "No additional notes"}
-                </p>
+            </div>
+          </div>
+
+          {/* Insurance Information */}
+          {(patient.insuranceProvider || patient.insuranceNumber || patient.insuranceGroup) && (
+            <div>
+              <h3 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>Insurance Information</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-600">Insurance Provider</label>
+                  <p className="text-gray-900">{patient.insuranceProvider || "Not provided"}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-600">Insurance Number</label>
+                  <p className="text-gray-900">{patient.insuranceNumber || "Not provided"}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-600">Group Number</label>
+                  <p className="text-gray-900">{patient.insuranceGroup || "Not provided"}</p>
+                </div>
               </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+              <MessageSquare className="h-4 w-4" />
+              <span>Notes</span>
+            </h3>
+            <div className="space-y-2">
+              <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                {patient.notes || "No additional notes"}
+              </p>
             </div>
           </div>
 

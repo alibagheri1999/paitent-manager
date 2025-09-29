@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { FileUpload } from "./file-upload";
 
 const recordSchema = z.object({
   patientId: z.string().min(1, "Patient is required"),
@@ -38,6 +39,7 @@ interface RecordFormProps {
 export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: RecordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [recordId, setRecordId] = useState<string | null>(record?.id || null);
   
   const {
     register,
@@ -80,6 +82,11 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
   }, []);
 
   const onSubmit = async (data: RecordFormData) => {
+    // Prevent duplicate submission if record already exists
+    if (!record && recordId) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -95,8 +102,17 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
       });
 
       if (response.ok) {
+        const result = await response.json();
+        if (!record) {
+          setRecordId(result.id);
+        }
         toast.success(record ? "Record updated successfully" : "Record created successfully");
-        onSuccess();
+        if (record) {
+          onSuccess();
+        } else {
+          // For new records, don't call onSuccess immediately - let user upload files first
+          // onSuccess will be called when user closes the form
+        }
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to save record");
@@ -249,13 +265,35 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
               </label>
             </div>
 
+            {/* File Upload Section - Show after record is created */}
+            {recordId && (
+              <div className="mt-8 pt-6 border-t">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Attach Files</h3>
+                <FileUpload 
+                  recordId={recordId} 
+                  onFileUploaded={() => {
+                    // Optional: refresh or update UI
+                  }}
+                />
+                <div className="mt-4 text-sm text-gray-600">
+                  <p>You can attach files to this record. Click "Done" when finished.</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end space-x-4 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : record ? "Update Record" : "Create Record"}
-              </Button>
+              {!record && recordId ? (
+                <Button type="button" onClick={onSuccess}>
+                  Done
+                </Button>
+              ) : (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : record ? "Update Record" : "Create Record"}
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>

@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const view = searchParams.get("view") || "month"; // day, week, month
     const date = searchParams.get("date"); // ISO date string
+    const view = searchParams.get("view") || (date ? "day" : "month"); // day, week, month
     const limit = parseInt(searchParams.get("limit") || "1000");
     const status = searchParams.get("status");
 
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { patientId, date, startTime, endTime, treatmentType, description, notes } = body;
 
-    const appointment = await prisma.appointment.create({
+    const appointment = await (prisma as any).appointment.create({
       data: {
         patientId,
         date: new Date(date),

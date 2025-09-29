@@ -7,6 +7,7 @@ import { RecordForm } from "@/components/records/record-form";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ExportButton } from "@/components/ui/export-button";
 import { Plus, Search } from "lucide-react";
 
 interface Record {
@@ -117,10 +118,19 @@ export default function RecordsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Treatment Records</h1>
             <p className="text-gray-600">Manage patient treatment records and billing</p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Record
-          </Button>
+          <div className="flex items-center space-x-2">
+            <ExportButton
+              exportType="records"
+              filename="records_export"
+              variant="outline"
+            >
+              Export Records
+            </ExportButton>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Record
+            </Button>
+          </div>
         </div>
 
         {/* Search Bar */}

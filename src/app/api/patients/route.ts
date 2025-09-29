@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       console.log('Searching patients with:', search);
       const searchTerms = search.trim().split(/\s+/); // Split by whitespace
       
-      const searchConditions = [
+      const searchConditions: any[] = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
@@ -117,6 +117,9 @@ export async function POST(request: NextRequest) {
       emergencyPhone,
       medicalHistory,
       allergies,
+      insuranceProvider,
+      insuranceNumber,
+      insuranceGroup,
       notes,
     } = body;
 
@@ -134,7 +137,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const patient = await prisma.patient.create({
+    const patient = await (prisma as any).patient.create({
       data: {
         firstName,
         lastName,
@@ -147,6 +150,9 @@ export async function POST(request: NextRequest) {
         emergencyPhone: emergencyPhone || null,
         medicalHistory: medicalHistory || null,
         allergies: allergies || null,
+        insuranceProvider: insuranceProvider || null,
+        insuranceNumber: insuranceNumber || null,
+        insuranceGroup: insuranceGroup || null,
         notes: notes || null,
         userId: session.user.id,
       },

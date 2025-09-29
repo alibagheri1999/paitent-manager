@@ -1,13 +1,3 @@
-add record file storage
-fixing create record
-complete Revenue Overview
-complete crud Staff Management
-fix dashboard upcoming-appointments.tsx:51 Uncaught TypeError: appointments.map is not a function at UpcomingAppointments (upcoming-appointments.tsx:51:26)
-add genearete execl from appointment
-add genearete execl from record
-add genearete execl from patient
-add genearete execl from analytics
-add paid status in appointment and record (all in once or installment payment)
 making responsive for all pages
 get appointment in execl and can inport them to database
 signout does not work

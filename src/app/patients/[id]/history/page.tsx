@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Search, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Search, Eye, Edit, Trash2, Plus, Download, DollarSign } from "lucide-react";
+import { PaymentStepsManager } from "@/components/payments/payment-steps-manager";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination";
 import { toast } from "sonner";
@@ -27,6 +28,8 @@ interface Record {
   date: string;
   notes?: string;
   isCompleted: boolean;
+  paymentStatus?: string;
+  paymentType?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -115,6 +118,41 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
     }
   };
 
+  const handleExportHistory = async () => {
+    try {
+      console.log("Exporting patient history for:", patientId);
+      const response = await fetch(`/api/export/patient-history/${patientId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log("Response status:", response.status);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `patient_history_${patient?.firstName}_${patient?.lastName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success("Patient history exported successfully!");
+      } else {
+        const errorData = await response.json();
+        console.error("Export failed:", errorData);
+        toast.error(errorData.error || "Failed to export patient history.");
+      }
+    } catch (error) {
+      console.error("Error exporting patient history:", error);
+      toast.error("An unexpected error occurred during export.");
+    }
+  };
+
   const getTreatmentTypeColor = (type: string) => {
     switch (type) {
       case "CONSULTATION":
@@ -177,13 +215,23 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => router.push(`/records/new?patientId=${patientId}`)}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Record</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={handleExportHistory}
+              variant="outline"
+              className="flex items-center space-x-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Export History</span>
+            </Button>
+            <Button
+              onClick={() => router.push(`/records/new?patientId=${patientId}`)}
+              className="flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Record</span>
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
@@ -246,6 +294,12 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
                         <span className="font-medium text-green-600">
                           {formatCurrency(record.cost)}
                         </span>
+                        <Badge className={getPaymentStatusColor(record.paymentStatus)}>
+                          {record.paymentStatus || "UNPAID"}
+                        </Badge>
+                        <span className="text-gray-500">
+                          {record.paymentType || "FULL_PAYMENT"}
+                        </span>
                       </div>
                     </div>
                     
@@ -274,6 +328,15 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Payment Steps Section */}
+                  <div className="mt-4 pt-4 border-t">
+                    <PaymentStepsManager
+                      recordId={record.id}
+                      recordCost={record.cost}
+                      onUpdate={fetchRecords}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -293,4 +356,32 @@ export default function PatientHistoryPage({}: PatientHistoryPageProps) {
       </Card>
     </div>
   );
+}
+
+function getPaymentStatusColor(status?: string) {
+  switch (status) {
+    case "PAID":
+      return "bg-green-100 text-green-800";
+    case "PARTIAL":
+      return "bg-yellow-100 text-yellow-800";
+    case "UNPAID":
+    default:
+      return "bg-red-100 text-red-800";
+  }
+}
+
+function getTreatmentTypeColor(type: string) {
+  const colors: { [key: string]: string } = {
+    CLEANING: "bg-blue-100 text-blue-800",
+    FILLING: "bg-green-100 text-green-800",
+    EXTRACTION: "bg-red-100 text-red-800",
+    ROOT_CANAL: "bg-purple-100 text-purple-800",
+    CROWN: "bg-yellow-100 text-yellow-800",
+    BRIDGE: "bg-indigo-100 text-indigo-800",
+    DENTURE: "bg-pink-100 text-pink-800",
+    ORTHODONTIC: "bg-teal-100 text-teal-800",
+    IMPLANT: "bg-orange-100 text-orange-800",
+    OTHER: "bg-gray-100 text-gray-800",
+  };
+  return colors[type] || "bg-gray-100 text-gray-800";
 }

@@ -1,0 +1,169 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { DollarSign, AlertTriangle, Users, TrendingUp } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+
+interface DebtSummary {
+  totalPatientsWithDebts: number;
+  totalDebtAmount: number;
+  patients: {
+    patientId: string;
+    patientName: string;
+    totalDebt: number;
+    unpaidRecords: number;
+  }[];
+}
+
+export function PatientDebtOverview() {
+  const [debtSummary, setDebtSummary] = useState<DebtSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDebtSummary();
+  }, []);
+
+  const fetchDebtSummary = async () => {
+    try {
+      const response = await fetch("/api/debts");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Debt summary data:", data);
+        setDebtSummary(data);
+      } else {
+        console.error("Failed to fetch debt summary:", response.status);
+      }
+    } catch (error) {
+      console.error("Failed to fetch debt summary:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-4">
+            <p className="text-gray-500">Loading debt overview...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!debtSummary || debtSummary.patients.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <TrendingUp className="h-6 w-6 text-green-600" />
+            </div>
+            <p className="text-gray-500 font-medium">All Clear!</p>
+            <p className="text-sm text-gray-400 mt-1">No outstanding patient debts</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Users className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Patients with Debts</p>
+                <p className="text-xl font-bold text-gray-900">{debtSummary.totalPatientsWithDebts}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Outstanding</p>
+                <p className="text-xl font-bold text-red-600">
+                  {formatCurrency(debtSummary.totalDebtAmount || 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Average Debt</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {formatCurrency(
+                    debtSummary.totalPatientsWithDebts > 0 
+                      ? (debtSummary.totalDebtAmount || 0) / debtSummary.totalPatientsWithDebts 
+                      : 0
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Debtors */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <span>Top Outstanding Debts</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-3">
+            {debtSummary.patients.slice(0, 5).map((patient) => (
+              <div key={patient.patientId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-red-600">
+                      {patient.patientName.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{patient.patientName}</p>
+                    <p className="text-sm text-gray-500">{patient.unpaidRecords} unpaid record{patient.unpaidRecords !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-red-600">{formatCurrency(patient.totalDebt || 0)}</p>
+                </div>
+              </div>
+            ))}
+            
+            {debtSummary.patients.length > 5 && (
+              <div className="text-center pt-2">
+                <p className="text-sm text-gray-500">
+                  And {debtSummary.patients.length - 5} more patient{debtSummary.patients.length - 5 !== 1 ? 's' : ''} with outstanding debts
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

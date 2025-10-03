@@ -21,14 +21,14 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Patients", href: "/patients", icon: Users },
-  { name: "Appointments", href: "/appointments", icon: Calendar },
-  { name: "Records", href: "/records", icon: FileText },
-  { name: "Debts", href: "/debts", icon: DollarSign },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Staff", href: "/staff", icon: UserCheck },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "داشبورد", href: "/dashboard", icon: LayoutDashboard },
+  { name: "بیماران", href: "/patients", icon: Users },
+  { name: "نوبت‌ها", href: "/appointments", icon: Calendar },
+  { name: "پرونده‌ها", href: "/records", icon: FileText },
+  { name: "بدهی‌ها", href: "/debts", icon: DollarSign },
+  { name: "تحلیل و گزارش", href: "/analytics", icon: BarChart3 },
+  { name: "کارمندان", href: "/staff", icon: UserCheck },
+  { name: "تنظیمات", href: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -57,11 +57,11 @@ export function Sidebar({ onClose }: SidebarProps) {
     <div className="flex h-full w-64 flex-col bg-gradient-to-b from-blue-900 to-blue-800 border-r border-blue-700 shadow-xl animate-slide-in-from-left">
       {/* Header with close button for mobile */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-blue-700">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-300 hover:scale-110">
             <Stethoscope className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-white">DentalCare</h1>
+          <h1 className="text-xl font-bold text-white">دندان‌پزشکی</h1>
         </div>
         
         {/* Mobile close button */}
@@ -83,9 +83,9 @@ export function Sidebar({ onClose }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-lg hover:bg-white/15",
+                "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-lg hover:bg-white/15",
                 isActive
-                  ? "bg-white/20 text-white border-r-2 border-white shadow-lg backdrop-blur-sm"
+                  ? "bg-white/20 text-white border-l-2 border-white shadow-lg backdrop-blur-sm"
                   : "text-white/80 hover:bg-white/10 hover:text-white"
               )}
               onClick={onClose} // Close sidebar on mobile when navigating
@@ -94,7 +94,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                 "h-5 w-5 transition-all duration-500 ease-in-out group-hover:scale-110",
                 isActive ? "text-white" : "text-white/70 group-hover:text-white"
               )} />
-              <span className="transition-all duration-500 ease-in-out group-hover:translate-x-1 group-hover:font-semibold">{item.name}</span>
+              <span className="transition-all duration-500 ease-in-out group-hover:-translate-x-1 group-hover:font-semibold">{item.name}</span>
             </Link>
           );
         })}
@@ -106,8 +106,8 @@ export function Sidebar({ onClose }: SidebarProps) {
           className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10 transition-all duration-500 ease-in-out hover:scale-105 group"
           onClick={handleSignOut}
         >
-          <LogOut className="h-5 w-5 mr-3 transition-transform duration-500 ease-in-out group-hover:scale-110" />
-          <span className="group-hover:font-semibold">Sign Out</span>
+          <LogOut className="h-5 w-5 ml-3 transition-transform duration-500 ease-in-out group-hover:scale-110" />
+          <span className="group-hover:font-semibold">خروج</span>
         </Button>
       </div>
     </div>

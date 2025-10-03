@@ -8,6 +8,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, Clock, Users } from "lucide-react";
+import { toJalali } from "@/lib/utils";
+import { faLocale } from "@/lib/fullcalendar-fa-locale";
 
 interface Appointment {
   id: string;
@@ -188,26 +190,44 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
     }
   };
 
+  // Get calendar title - show both Gregorian and Jalali
+  const getCalendarTitle = () => {
+    if (!calendarData?.calendarTitle) {
+      return currentDate ? `${toJalali(currentDate, 'jMMMM jYYYY')}` : "تقویم";
+    }
+    
+    // Show Jalali version of the calendar title
+    try {
+      if (currentDate) {
+        const jalaliTitle = toJalali(currentDate, 'jMMMM jYYYY');
+        return `${jalaliTitle} (${calendarData.calendarTitle})`;
+      }
+      return calendarData.calendarTitle;
+    } catch (error) {
+      return calendarData.calendarTitle;
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-4 sm:p-6">
         {/* Calendar Header with Navigation */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                {calendarData?.calendarTitle || "Calendar"}
+                {getCalendarTitle()}
               </h2>
-              <div className="flex items-center space-x-1 sm:space-x-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewChange("month")}
                   className={`text-xs sm:text-sm ${currentView === "month" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  <span className="hidden sm:inline">Month</span>
-                  <span className="sm:hidden">M</span>
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+                  <span className="hidden sm:inline">ماه</span>
+                  <span className="sm:hidden">م</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -215,9 +235,9 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
                   onClick={() => handleViewChange("week")}
                   className={`text-xs sm:text-sm ${currentView === "week" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  <span className="hidden sm:inline">Week</span>
-                  <span className="sm:hidden">W</span>
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+                  <span className="hidden sm:inline">هفته</span>
+                  <span className="sm:hidden">ه</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -225,30 +245,14 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
                   onClick={() => handleViewChange("day")}
                   className={`text-xs sm:text-sm ${currentView === "day" ? "bg-blue-50 border-blue-200" : ""}`}
                 >
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  <span className="hidden sm:inline">Day</span>
-                  <span className="sm:hidden">D</span>
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+                  <span className="hidden sm:inline">روز</span>
+                  <span className="sm:hidden">ر</span>
                 </Button>
               </div>
             </div>
             
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleNavigation("prev")}
-                className="text-xs sm:text-sm"
-              >
-                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleNavigation("today")}
-                className="text-xs sm:text-sm"
-              >
-                Today
-              </Button>
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -256,6 +260,22 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
                 className="text-xs sm:text-sm"
               >
                 <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleNavigation("today")}
+                className="text-xs sm:text-sm px-3"
+              >
+                امروز
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleNavigation("prev")}
+                className="text-xs sm:text-sm"
+              >
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
@@ -265,33 +285,33 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 mb-4">
               <div className="text-center p-2 sm:p-3 bg-blue-50 rounded-lg">
                 <div className="text-lg sm:text-2xl font-bold text-blue-600">
-                  {calendarData.stats.totalAppointments}
+                  {calendarData.stats.totalAppointments.toLocaleString('fa-IR')}
                 </div>
-                <div className="text-xs sm:text-sm text-blue-800">Total</div>
+                <div className="text-xs sm:text-sm text-blue-800">کل</div>
               </div>
               <div className="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
                 <div className="text-lg sm:text-2xl font-bold text-green-600">
-                  {calendarData.stats.scheduled}
+                  {calendarData.stats.scheduled.toLocaleString('fa-IR')}
                 </div>
-                <div className="text-xs sm:text-sm text-green-800">Scheduled</div>
+                <div className="text-xs sm:text-sm text-green-800">برنامه‌ریزی شده</div>
               </div>
               <div className="text-center p-2 sm:p-3 bg-emerald-50 rounded-lg">
                 <div className="text-lg sm:text-2xl font-bold text-emerald-600">
-                  {calendarData.stats.completed}
+                  {calendarData.stats.completed.toLocaleString('fa-IR')}
                 </div>
-                <div className="text-xs sm:text-sm text-emerald-800">Completed</div>
+                <div className="text-xs sm:text-sm text-emerald-800">تکمیل شده</div>
               </div>
               <div className="text-center p-2 sm:p-3 bg-red-50 rounded-lg">
                 <div className="text-lg sm:text-2xl font-bold text-red-600">
-                  {calendarData.stats.cancelled}
+                  {calendarData.stats.cancelled.toLocaleString('fa-IR')}
                 </div>
-                <div className="text-xs sm:text-sm text-red-800">Cancelled</div>
+                <div className="text-xs sm:text-sm text-red-800">لغو شده</div>
               </div>
               <div className="text-center p-2 sm:p-3 bg-yellow-50 rounded-lg">
                 <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                  {calendarData.stats.noShow}
+                  {calendarData.stats.noShow.toLocaleString('fa-IR')}
                 </div>
-                <div className="text-xs sm:text-sm text-yellow-800">No Show</div>
+                <div className="text-xs sm:text-sm text-yellow-800">عدم حضور</div>
               </div>
             </div>
           )}
@@ -303,6 +323,7 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView={getCalendarView()}
             headerToolbar={false} // We're using custom header
+            locale={faLocale as any}
             events={appointments}
             dateClick={handleDateClick}
             eventClick={handleEventClick}

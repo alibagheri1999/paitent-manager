@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Edit, Trash2, Shield } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { translateStaffRole } from "@/lib/translate-enums";
 
 interface StaffMember {
   id: string;
@@ -18,7 +19,7 @@ interface StaffMember {
 
 interface StaffListProps {
   staff: StaffMember[];
-  onEdit: (staff: StaffMember) => void;
+  onEdit: (staff: StaffMember, triggerElement?: HTMLElement) => void;
   onRefresh: () => void;
 }
 
@@ -36,7 +37,7 @@ export function StaffList({ staff, onEdit, onRefresh }: StaffListProps) {
   }, [staff, searchTerm]);
 
   const handleDelete = async (staffId: string) => {
-    if (confirm("Are you sure you want to delete this staff member?")) {
+    if (confirm("آیا مطمئن هستید که می‌خواهید این کارمند را حذف کنید؟")) {
       try {
         const response = await fetch(`/api/staff/${staffId}`, {
           method: "DELETE",
@@ -69,12 +70,12 @@ export function StaffList({ staff, onEdit, onRefresh }: StaffListProps) {
       <CardContent className="p-6">
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search staff..."
+              placeholder="جستجوی کارمندان..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pr-10 text-right"
             />
           </div>
         </div>
@@ -82,51 +83,54 @@ export function StaffList({ staff, onEdit, onRefresh }: StaffListProps) {
         <div className="space-y-4">
           {filteredStaff.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No staff members found</p>
+              <p className="text-gray-500">کارمندی یافت نشد</p>
             </div>
           ) : (
             filteredStaff.map((staffMember) => (
               <div key={staffMember.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-blue-600" />
+                    <div className="flex items-center gap-4 flex-row-reverse">
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <Shield className="h-6 w-6 text-blue-600" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">
+                      <div className="flex-1 text-right">
+                        <h3 className="font-semibold text-gray-900 text-lg">
                           {staffMember.name}
                         </h3>
                         <p className="text-sm text-gray-600">
                           {staffMember.email}
                         </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <Badge className={getRoleColor(staffMember.role)}>
-                            {staffMember.role}
-                          </Badge>
+                        <div className="flex items-center gap-2 mt-2 justify-end flex-wrap">
                           <span className="text-xs text-gray-400">
-                            Joined {formatDate(new Date(staffMember.createdAt))}
+                            عضویت: {formatDate(new Date(staffMember.createdAt))}
                           </span>
+                          <Badge className={getRoleColor(staffMember.role)}>
+                            {translateStaffRole(staffMember.role)}
+                          </Badge>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => onEdit(staffMember)}
+                      onClick={(e) => onEdit(staffMember, e.currentTarget)}
+                      className="h-9 w-9"
+                      title="ویرایش"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-5 w-5" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleDelete(staffMember.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 h-9 w-9"
+                      title="حذف"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

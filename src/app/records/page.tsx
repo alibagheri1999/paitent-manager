@@ -61,6 +61,7 @@ export default function RecordsPage() {
     hasPrevPage: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [formTriggerElement, setFormTriggerElement] = useState<HTMLElement | null>(null);
 
   const fetchRecords = async (page: number = currentPage, search: string = searchTerm) => {
     setIsLoading(true);
@@ -101,8 +102,9 @@ export default function RecordsPage() {
     fetchRecords(1, searchTerm);
   };
 
-  const handleEditRecord = (record: Record) => {
+  const handleEditRecord = (record: Record, triggerElement?: HTMLElement) => {
     setEditingRecord(record);
+    setFormTriggerElement(triggerElement || null);
     setIsFormOpen(true);
   };
 
@@ -131,21 +133,27 @@ export default function RecordsPage() {
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-bounce-in">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Treatment Records</h1>
-            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage patient treatment records and billing</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">پرونده‌های درمانی</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">مدیریت پرونده‌های درمانی و صورت‌حساب بیماران</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-slide-in-left animation-delay-500">
             <ExportButton
               exportType="records"
               filename="records_export"
               variant="outline"
-              className="w-full sm:w-auto hover-lift hover:animate-wiggle"
+              className="w-full sm:w-auto hover-lift "
             >
-              Export Records
+              خروجی اکسل پرونده‌ها
             </ExportButton>
-            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto hover-lift">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Record
+            <Button 
+              onClick={(e) => {
+                setFormTriggerElement(e.currentTarget);
+                setIsFormOpen(true);
+              }} 
+              className="w-full sm:w-auto hover-lift"
+            >
+              <Plus className="h-4 w-4 ml-2" />
+              افزودن پرونده
             </Button>
           </div>
         </div>
@@ -153,17 +161,17 @@ export default function RecordsPage() {
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 animate-slide-up animation-delay-1000">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
-              placeholder="Search records..."
+              placeholder="جستجوی پرونده‌ها..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10 hover-lift"
+              className="pr-10 hover-lift text-right"
             />
           </div>
           <Button type="submit" variant="outline" className="w-full sm:w-auto hover-lift">
-            Search
+            جستجو
           </Button>
         </form>
 
@@ -186,10 +194,13 @@ export default function RecordsPage() {
 
         {isFormOpen && (
           <RecordForm
+            isOpen={isFormOpen}
             record={editingRecord}
+            triggerElement={formTriggerElement}
             onClose={() => {
               setIsFormOpen(false);
               setEditingRecord(null);
+              setFormTriggerElement(null);
             }}
             onSuccess={handleRecordCreated}
           />

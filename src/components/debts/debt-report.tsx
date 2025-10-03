@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, User, Phone, Mail, Calendar, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { DollarSign, User, Phone, Mail, AlertTriangle, CheckCircle } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { translatePaymentStatus, translateTreatmentType } from "@/lib/translate-enums";
+import { PositionedModal } from "@/components/ui/positioned-modal";
 import { ExportButton } from "@/components/ui/export-button";
 
 interface DebtRecord {
@@ -44,8 +45,7 @@ export function DebtReport() {
   const [debtReport, setDebtReport] = useState<DebtReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<PatientDebt | null>(null);
-  
-  console.log("DebtReport component - selectedPatient:", selectedPatient);
+  const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     fetchDebtReport();
@@ -139,7 +139,7 @@ export function DebtReport() {
       <Card>
         <CardContent className="p-6">
           <div className="text-center py-8">
-            <p className="text-gray-500">Loading debt report...</p>
+            <p className="text-gray-500">در حال بارگذاری گزارش بدهی‌ها...</p>
           </div>
         </CardContent>
       </Card>
@@ -152,8 +152,8 @@ export function DebtReport() {
         <CardContent className="p-6">
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
-            <p className="text-gray-500">No outstanding debts</p>
-            <p className="text-sm text-gray-400 mt-1">All patients are up to date with their payments</p>
+            <p className="text-gray-500">بدهی معوقی وجود ندارد</p>
+            <p className="text-sm text-gray-400 mt-1">تمام بیماران پرداخت‌های خود را انجام داده‌اند</p>
           </div>
         </CardContent>
       </Card>
@@ -162,34 +162,17 @@ export function DebtReport() {
 
   return (
     <div className="space-y-6">
-      {/* Test Button - Remove this after testing */}
-      <div className="bg-yellow-100 p-4 rounded-lg">
-        <p className="text-sm text-yellow-800 mb-2">Debug: Current selectedPatient state: {selectedPatient ? selectedPatient.patientName : 'null'}</p>
-        <Button 
-          onClick={() => {
-            console.log("Test button clicked");
-            if (debtReport && debtReport.patients.length > 0) {
-              setSelectedPatient(debtReport.patients[0]);
-            }
-          }}
-          variant="outline"
-          size="sm"
-        >
-          Test Modal (First Patient)
-        </Button>
-      </div>
-      
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Patients with Debts</p>
-                <p className="text-2xl font-bold text-gray-900">{debtReport.totalPatientsWithDebts}</p>
+                <p className="text-sm font-medium text-gray-600">بیماران با بدهی</p>
+                <p className="text-2xl font-bold text-gray-900">{debtReport.totalPatientsWithDebts.toLocaleString('fa-IR')}</p>
               </div>
             </div>
           </CardContent>
@@ -197,12 +180,12 @@ export function DebtReport() {
 
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Debt Amount</p>
+                <p className="text-sm font-medium text-gray-600">مجموع بدهی</p>
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(debtReport.totalDebtAmount)}</p>
               </div>
             </div>
@@ -212,19 +195,19 @@ export function DebtReport() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
                   <User className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Average Debt</p>
+                  <p className="text-sm font-medium text-gray-600">میانگین بدهی</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {formatCurrency(debtReport.totalDebtAmount / debtReport.totalPatientsWithDebts)}
                   </p>
                 </div>
               </div>
               <Button onClick={exportDebtReport} variant="outline" size="sm">
-                Export
+                خروجی
               </Button>
             </div>
           </CardContent>
@@ -234,9 +217,9 @@ export function DebtReport() {
       {/* Patient List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            <span>Patients with Outstanding Debts</span>
+            <span>بیماران با بدهی معوق</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -245,45 +228,45 @@ export function DebtReport() {
               <div key={patient.patientId} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-4">
                       <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                         <User className="h-5 w-5 text-red-600" />
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
                           <h3 className="font-medium text-gray-900">{patient.patientName}</h3>
                           <Badge className="bg-red-100 text-red-800">
-                            {formatCurrency(patient.totalDebt)} Debt
+                            بدهی {formatCurrency(patient.totalDebt)}
                           </Badge>
                         </div>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <div className="flex items-center space-x-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
                             <Phone className="h-4 w-4" />
                             <span>{patient.patientPhone}</span>
                           </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
                             <Mail className="h-4 w-4" />
                             <span>{patient.patientEmail}</span>
                           </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
                             <AlertTriangle className="h-4 w-4" />
-                            <span>{patient.unpaidRecords} unpaid records</span>
+                            <span>{patient.unpaidRecords.toLocaleString('fa-IR')} پرونده پرداخت نشده</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        console.log("View Details clicked for patient:", patient.patientName);
+                      onClick={(e) => {
+                        setTriggerElement(e.currentTarget);
                         setSelectedPatient(patient);
                       }}
                     >
-                      View Details
+                      مشاهده جزئیات
                     </Button>
                   </div>
                 </div>
@@ -294,111 +277,81 @@ export function DebtReport() {
       </Card>
 
       {/* Patient Details Modal */}
-      {selectedPatient && (
-        <>
-          {console.log("Rendering modal for patient:", selectedPatient.patientName)}
-          <PatientDebtDetails
-            patient={selectedPatient}
-            onClose={() => {
-              console.log("Closing modal for patient:", selectedPatient.patientName);
-              setSelectedPatient(null);
-            }}
-          />
-        </>
-      )}
+      <PositionedModal
+        isOpen={!!selectedPatient}
+        onClose={() => {
+          setSelectedPatient(null);
+          setTriggerElement(null);
+        }}
+        triggerElement={triggerElement}
+        title={selectedPatient ? `${selectedPatient.patientName} - جزئیات بدهی` : ""}
+        maxWidth="800px"
+      >
+        {selectedPatient && <PatientDebtDetails patient={selectedPatient} />}
+      </PositionedModal>
     </div>
   );
 }
 
-// Patient Debt Details Modal
-function PatientDebtDetails({ 
-  patient, 
-  onClose 
-}: { 
-  patient: PatientDebt; 
-  onClose: () => void;
-}) {
-  console.log("PatientDebtDetails component rendering for:", patient.patientName);
-  
-  const modalContent = (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
-          <CardTitle className="flex items-center space-x-2">
-            <User className="h-5 w-5" />
-            <span>{patient.patientName} - Debt Details</span>
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        <CardContent className="p-6 overflow-y-auto flex-1">
-          <div className="space-y-6">
-            {/* Patient Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Debt</p>
-                <p className="text-xl font-bold text-red-600">{formatCurrency(patient.totalDebt)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Unpaid Records</p>
-                <p className="text-xl font-bold text-gray-900">{patient.unpaidRecords}</p>
-              </div>
-            </div>
+// Patient Debt Details Content
+function PatientDebtDetails({ patient }: { patient: PatientDebt }) {
+  return (
+    <div className="p-6 space-y-6">
+      {/* Patient Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+        <div>
+          <p className="text-sm font-medium text-gray-600">کل بدهی</p>
+          <p className="text-xl font-bold text-red-600">{formatCurrency(patient.totalDebt)}</p>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-600">پرونده‌های پرداخت نشده</p>
+          <p className="text-xl font-bold text-gray-900">{patient.unpaidRecords.toLocaleString('fa-IR')}</p>
+        </div>
+      </div>
 
-            {/* Records */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Outstanding Records</h3>
-              <div className="space-y-4">
-                {patient.records.map((record) => (
-                  <div key={record.recordId} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{record.treatmentType}</h4>
-                        <p className="text-sm text-gray-600">{record.description}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">Total: {formatCurrency(record.totalCost)}</p>
-                        <p className="font-bold text-red-600">Owed: {formatCurrency(record.recordDebt)}</p>
-                        <Badge className={getStatusColor(record.paymentStatus)}>
-                          {record.paymentStatus}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    {record.unpaidSteps.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600 mb-2">Unpaid Steps:</p>
-                        <div className="space-y-2">
-                          {record.unpaidSteps.map((step, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                              <span>Step {step.stepNumber}: {formatCurrency(step.amount)}</span>
-                              {step.dueDate && (
-                                <span className="text-gray-500">
-                                  Due: {formatDate(new Date(step.dueDate))}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+      {/* Records */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">پرونده‌های معوق</h3>
+        <div className="space-y-4">
+          {patient.records.map((record) => (
+            <div key={record.recordId} className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-medium text-gray-900">{translateTreatmentType(record.treatmentType)}</h4>
+                  <p className="text-sm text-gray-600">{record.description}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">کل: {formatCurrency(record.totalCost)}</p>
+                  <p className="font-bold text-red-600">بدهی: {formatCurrency(record.recordDebt)}</p>
+                  <Badge className={getStatusColor(record.paymentStatus)}>
+                    {translatePaymentStatus(record.paymentStatus)}
+                  </Badge>
+                </div>
               </div>
+              
+              {record.unpaidSteps.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-2">مراحل پرداخت نشده:</p>
+                  <div className="space-y-2">
+                    {record.unpaidSteps.map((step, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <span>مرحله {step.stepNumber.toLocaleString('fa-IR')}: {formatCurrency(step.amount)}</span>
+                        {step.dueDate && (
+                          <span className="text-gray-500">
+                            سررسید: {formatDate(new Date(step.dueDate))}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
-
-  // Use portal to render modal outside the current DOM hierarchy
-  if (typeof window !== 'undefined') {
-    return createPortal(modalContent, document.body);
-  }
-  
-  return modalContent;
 }
 
 function getStatusColor(status: string) {

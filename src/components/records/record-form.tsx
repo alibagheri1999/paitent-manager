@@ -4,19 +4,19 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
 import { toast } from "sonner";
 import { FileUpload } from "./file-upload";
+import { DateInputWithJalali } from "@/components/ui/date-input-with-jalali";
+import { PositionedModal } from "@/components/ui/positioned-modal";
 
 const recordSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
-  treatmentType: z.string().min(1, "Treatment type is required"),
-  description: z.string().min(1, "Description is required"),
-  cost: z.number().min(0, "Cost must be positive"),
-  date: z.string().min(1, "Date is required"),
+  patientId: z.string().min(1, "انتخاب بیمار الزامی است"),
+  treatmentType: z.string().min(1, "نوع درمان الزامی است"),
+  description: z.string().min(1, "توضیحات الزامی است"),
+  cost: z.number().min(0, "هزینه باید مثبت باشد"),
+  date: z.string().min(1, "تاریخ الزامی است"),
   notes: z.string().optional(),
   isCompleted: z.boolean(),
 });
@@ -30,13 +30,15 @@ interface Patient {
 }
 
 interface RecordFormProps {
+  isOpen: boolean;
   record?: any;
+  triggerElement?: HTMLElement | null;
   onClose: () => void;
   onSuccess: () => void;
   defaultPatientId?: string | null;
 }
 
-export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: RecordFormProps) {
+export function RecordForm({ isOpen, record, triggerElement, onClose, onSuccess, defaultPatientId }: RecordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [recordId, setRecordId] = useState<string | null>(record?.id || null);
@@ -46,6 +48,8 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<RecordFormData>({
     resolver: zodResolver(recordSchema),
     defaultValues: record ? {
@@ -106,7 +110,7 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
         if (!record) {
           setRecordId(result.id);
         }
-        toast.success(record ? "Record updated successfully" : "Record created successfully");
+        toast.success(record ? "پرونده با موفقیت به‌روزرسانی شد" : "پرونده با موفقیت ایجاد شد");
         if (record) {
           onSuccess();
         } else {
@@ -115,39 +119,37 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
         }
       } else {
         const error = await response.json();
-        toast.error(error.message || "Failed to save record");
+        toast.error(error.message || "خطا در ذخیره پرونده");
       }
     } catch (error) {
-      toast.error("An error occurred while saving the record");
+      toast.error("خطایی در ذخیره پرونده رخ داد");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>{record ? "Edit Record" : "Add New Record"}</CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent>
+    <PositionedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      triggerElement={triggerElement}
+      title={record ? "ویرایش پرونده" : "افزودن پرونده جدید"}
+      maxWidth="800px"
+    >
+      <div className="overflow-y-auto max-h-[75vh] p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Patient *
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                بیمار <span className="text-red-500">*</span>
               </label>
               {defaultPatientId ? (
-                <div className="w-full p-3 border border-gray-300 rounded-md bg-gray-50">
+                <div className="w-full p-3 border border-gray-300 rounded-md bg-gray-50 text-right">
                   {patients.find(p => p.id === defaultPatientId) ? (
                     <span className="text-gray-900">
                       {patients.find(p => p.id === defaultPatientId)?.firstName} {patients.find(p => p.id === defaultPatientId)?.lastName}
                     </span>
                   ) : (
-                    <span className="text-gray-500">Loading patient...</span>
+                    <span className="text-gray-500">در حال بارگذاری بیمار...</span>
                   )}
                 </div>
               ) : (
@@ -155,7 +157,7 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
                   {...register("patientId")}
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">Select a patient</option>
+                  <option value="">انتخاب بیمار</option>
                   {patients.map((patient) => (
                     <option key={patient.id} value={patient.id}>
                       {patient.firstName} {patient.lastName}
@@ -164,96 +166,108 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
                 </select>
               )}
               {errors.patientId && (
-                <p className="text-red-500 text-sm mt-1">{errors.patientId.message}</p>
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <span>⚠</span> {errors.patientId.message}
+                </p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Treatment Type *
+                <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                  نوع درمان <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register("treatmentType")}
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">Select treatment type</option>
-                  <option value="CONSULTATION">Consultation</option>
-                  <option value="CLEANING">Cleaning</option>
-                  <option value="FILLING">Filling</option>
-                  <option value="EXTRACTION">Extraction</option>
-                  <option value="CROWN">Crown</option>
-                  <option value="BRIDGE">Bridge</option>
-                  <option value="IMPLANT">Implant</option>
-                  <option value="ROOT_CANAL">Root Canal</option>
-                  <option value="ORTHODONTICS">Orthodontics</option>
-                  <option value="COSMETIC">Cosmetic</option>
-                  <option value="OTHER">Other</option>
+                  <option value="">انتخاب نوع درمان</option>
+                  <option value="CONSULTATION">مشاوره</option>
+                  <option value="CLEANING">جرم‌گیری</option>
+                  <option value="FILLING">ترمیم دندان</option>
+                  <option value="EXTRACTION">کشیدن دندان</option>
+                  <option value="CROWN">روکش دندان</option>
+                  <option value="BRIDGE">بریج</option>
+                  <option value="IMPLANT">ایمپلنت</option>
+                  <option value="ROOT_CANAL">عصب‌کشی</option>
+                  <option value="ORTHODONTICS">ارتودنسی</option>
+                  <option value="COSMETIC">زیبایی</option>
+                  <option value="OTHER">سایر</option>
                 </select>
                 {errors.treatmentType && (
-                  <p className="text-red-500 text-sm mt-1">{errors.treatmentType.message}</p>
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.treatmentType.message}
+                  </p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cost *
+                <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                  هزینه <span className="text-red-500">*</span>
                 </label>
                 <Input
                   {...register("cost", { valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="Enter cost"
+                  placeholder="هزینه را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.cost && (
-                  <p className="text-red-500 text-sm mt-1">{errors.cost.message}</p>
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.cost.message}
+                  </p>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date *
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                تاریخ <span className="text-red-500">*</span>
               </label>
-              <Input
-                {...register("date")}
-                type="date"
+              <DateInputWithJalali
+                value={watch("date")}
+                onChange={(date) => setValue("date", date)}
                 required
+                className="focus:ring-2 focus:ring-blue-500"
               />
               {errors.date && (
-                <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <span>⚠</span> {errors.date.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description *
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                توضیحات <span className="text-red-500">*</span>
               </label>
               <textarea
                 {...register("description")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 rows={3}
-                placeholder="Enter treatment description"
+                placeholder="توضیحات درمان را وارد کنید"
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <span>⚠</span> {errors.description.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                یادداشت‌ها
               </label>
               <textarea
                 {...register("notes")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 rows={3}
-                placeholder="Additional notes"
+                placeholder="یادداشت‌های اضافی"
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <input
                 {...register("isCompleted")}
                 type="checkbox"
@@ -261,43 +275,49 @@ export function RecordForm({ record, onClose, onSuccess, defaultPatientId }: Rec
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <label htmlFor="isCompleted" className="text-sm font-medium text-gray-700">
-                Mark as completed
+                علامت‌گذاری به عنوان تکمیل شده
               </label>
             </div>
 
             {/* File Upload Section - Show after record is created */}
             {recordId && (
-              <div className="mt-8 pt-6 border-t">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Attach Files</h3>
+              <div className="mt-8 pt-6 border-t bg-blue-50/30 -mx-6 px-6 py-6 rounded-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 text-right">پیوست فایل‌ها</h3>
                 <FileUpload 
                   recordId={recordId} 
                   onFileUploaded={() => {
                     // Optional: refresh or update UI
                   }}
                 />
-                <div className="mt-4 text-sm text-gray-600">
-                  <p>You can attach files to this record. Click "Done" when finished.</p>
+                <div className="mt-4 text-sm text-gray-600 text-right">
+                  <p>می‌توانید فایل به این پرونده پیوست کنید. پس از اتمام روی "تمام" کلیک کنید.</p>
                 </div>
               </div>
             )}
 
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+            <div className="flex justify-end gap-4 pt-6 border-t mt-6 sticky bottom-0 bg-white pb-2">
+              <Button type="button" variant="outline" onClick={onClose} className="min-w-[100px]">
+                لغو
               </Button>
               {!record && recordId ? (
-                <Button type="button" onClick={onSuccess}>
-                  Done
+                <Button type="button" onClick={onSuccess} className="min-w-[100px] bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                  تمام
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Saving..." : record ? "Update Record" : "Create Record"}
+                <Button type="submit" disabled={isSubmitting} className="min-w-[120px] bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      در حال ذخیره...
+                    </span>
+                  ) : (
+                    record ? "به‌روزرسانی پرونده" : "ایجاد پرونده"
+                  )}
                 </Button>
               )}
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+      </div>
+    </PositionedModal>
   );
 }

@@ -19,6 +19,7 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [formTriggerElement, setFormTriggerElement] = useState<HTMLElement | null>(null);
 
   const fetchStaff = async () => {
     try {
@@ -42,8 +43,9 @@ export default function StaffPage() {
     fetchStaff();
   };
 
-  const handleEditStaff = (staffMember: StaffMember) => {
+  const handleEditStaff = (staffMember: StaffMember, triggerElement?: HTMLElement) => {
     setEditingStaff(staffMember);
+    setFormTriggerElement(triggerElement || null);
     setIsFormOpen(true);
   };
 
@@ -52,13 +54,19 @@ export default function StaffPage() {
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-bounce-in">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Staff Management</h1>
-            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage your clinic staff members</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">مدیریت کارمندان</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">مدیریت اعضای کارمندان کلینیک</p>
           </div>
           <div className="animate-slide-in-left animation-delay-500">
-            <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto hover-lift hover:animate-wiggle">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Staff
+            <Button 
+              onClick={(e) => {
+                setFormTriggerElement(e.currentTarget);
+                setIsFormOpen(true);
+              }} 
+              className="w-full sm:w-auto hover-lift "
+            >
+              <Plus className="h-4 w-4 ml-2" />
+              افزودن کارمند
             </Button>
           </div>
         </div>
@@ -73,10 +81,13 @@ export default function StaffPage() {
 
         {isFormOpen && (
           <StaffForm
+            isOpen={isFormOpen}
             staff={editingStaff}
+            triggerElement={formTriggerElement}
             onClose={() => {
               setIsFormOpen(false);
               setEditingStaff(null);
+              setFormTriggerElement(null);
             }}
             onSuccess={handleStaffCreated}
           />

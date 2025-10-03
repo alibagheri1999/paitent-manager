@@ -38,29 +38,29 @@ export function StatsCards() {
 
   const statsCards = [
     {
-      title: "Total Patients",
-      value: stats.totalPatients,
+      title: "کل بیماران",
+      value: stats.totalPatients.toLocaleString('fa-IR'),
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      title: "Today's Appointments",
-      value: stats.todayAppointments,
+      title: "نوبت‌های امروز",
+      value: stats.todayAppointments.toLocaleString('fa-IR'),
       icon: Calendar,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      title: "Monthly Revenue",
-      value: `$${stats.monthlyRevenue.toLocaleString()}`,
+      title: "درآمد ماهانه",
+      value: `${stats.monthlyRevenue.toLocaleString('fa-IR')} ریال`,
       icon: DollarSign,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      title: "Active Patients",
-      value: stats.activePatients,
+      title: "بیماران فعال",
+      value: stats.activePatients.toLocaleString('fa-IR'),
       icon: Activity,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
@@ -74,7 +74,7 @@ export function StatsCards() {
         return (
           <Card 
             key={index} 
-            className="card-hover animate-bounce-in hover-lift group hover:animate-wiggle"
+            className="card-hover animate-bounce-in hover-lift group"
             style={{ animationDelay: `${index * 200}ms` }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

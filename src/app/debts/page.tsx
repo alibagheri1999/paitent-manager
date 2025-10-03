@@ -8,8 +8,8 @@ export default function DebtsPage() {
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Debt Management</h1>
-          <p className="text-sm sm:text-base text-gray-600">Track and manage patient outstanding debts</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">مدیریت بدهی‌ها</h1>
+          <p className="text-sm sm:text-base text-gray-600">پیگیری و مدیریت بدهی‌های معوق بیماران</p>
         </div>
         
         <DebtReport />

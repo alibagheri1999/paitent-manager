@@ -47,7 +47,7 @@ export function PatientDebtOverview() {
       <Card>
         <CardContent className="p-6">
           <div className="text-center py-4">
-            <p className="text-gray-500">Loading debt overview...</p>
+            <p className="text-gray-500">در حال بارگذاری نمای کلی بدهی‌ها...</p>
           </div>
         </CardContent>
       </Card>
@@ -62,8 +62,8 @@ export function PatientDebtOverview() {
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
-            <p className="text-gray-500 font-medium">All Clear!</p>
-            <p className="text-sm text-gray-400 mt-1">No outstanding patient debts</p>
+            <p className="text-gray-500 font-medium">همه چیز مرتب است!</p>
+            <p className="text-sm text-gray-400 mt-1">بدهی معوقی وجود ندارد</p>
           </div>
         </CardContent>
       </Card>
@@ -76,13 +76,13 @@ export function PatientDebtOverview() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                 <Users className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Patients with Debts</p>
-                <p className="text-lg sm:text-xl font-bold text-gray-900">{debtSummary.totalPatientsWithDebts}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">بیماران با بدهی</p>
+                <p className="text-lg sm:text-xl font-bold text-gray-900">{debtSummary.totalPatientsWithDebts.toLocaleString('fa-IR')}</p>
               </div>
             </div>
           </CardContent>
@@ -90,12 +90,12 @@ export function PatientDebtOverview() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                 <DollarSign className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Outstanding</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">کل بدهی معوق</p>
                 <p className="text-lg sm:text-xl font-bold text-red-600">
                   {formatCurrency(debtSummary.totalDebtAmount || 0)}
                 </p>
@@ -106,12 +106,12 @@ export function PatientDebtOverview() {
 
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Average Debt</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">میانگین بدهی</p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900">
                   {formatCurrency(
                     debtSummary.totalPatientsWithDebts > 0 
@@ -128,16 +128,16 @@ export function PatientDebtOverview() {
       {/* Top Debtors */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            <span>Top Outstanding Debts</span>
+            <span>بالاترین بدهی‌های معوق</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
           <div className="space-y-3">
             {debtSummary.patients.slice(0, 5).map((patient) => (
               <div key={patient.patientId} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-2 sm:gap-0">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
                     <span className="text-sm font-medium text-red-600">
                       {patient.patientName.split(' ').map(n => n[0]).join('')}
@@ -145,7 +145,9 @@ export function PatientDebtOverview() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm sm:text-base">{patient.patientName}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">{patient.unpaidRecords} unpaid record{patient.unpaidRecords !== 1 ? 's' : ''}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {patient.unpaidRecords.toLocaleString('fa-IR')} پرونده پرداخت نشده
+                    </p>
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
@@ -157,7 +159,7 @@ export function PatientDebtOverview() {
             {debtSummary.patients.length > 5 && (
               <div className="text-center pt-2">
                 <p className="text-xs sm:text-sm text-gray-500">
-                  And {debtSummary.patients.length - 5} more patient{debtSummary.patients.length - 5 !== 1 ? 's' : ''} with outstanding debts
+                  و {(debtSummary.patients.length - 5).toLocaleString('fa-IR')} بیمار دیگر با بدهی معوق
                 </p>
               </div>
             )}

@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, DollarSign, Calendar, CheckCircle, XCircle, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { translatePaymentMethod } from "@/lib/translate-enums";
+import { DateInputWithJalali } from "@/components/ui/date-input-with-jalali";
 
 interface PaymentStep {
   id: string;
@@ -73,16 +75,16 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
       });
 
       if (response.ok) {
-        toast.success("Payment steps created successfully");
+        toast.success("مراحل پرداخت با موفقیت ایجاد شد");
         setShowAddForm(false);
         fetchPaymentSteps();
         if (onUpdate) onUpdate();
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to create payment steps");
+        toast.error(error.error || "خطا در ایجاد مراحل پرداخت");
       }
     } catch (error) {
-      toast.error("An error occurred while creating payment steps");
+      toast.error("خطایی در ایجاد مراحل پرداخت رخ داد");
     }
   };
 
@@ -102,16 +104,16 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
       });
 
       if (response.ok) {
-        toast.success(`Payment step ${isPaid ? 'marked as paid' : 'marked as unpaid'}`);
+        toast.success(isPaid ? 'مرحله پرداخت به عنوان پرداخت شده علامت‌گذاری شد' : 'مرحله پرداخت به عنوان پرداخت نشده علامت‌گذاری شد');
         setEditingStep(null);
         fetchPaymentSteps();
         if (onUpdate) onUpdate();
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to update payment step");
+        toast.error(error.error || "خطا در به‌روزرسانی مرحله پرداخت");
       }
     } catch (error) {
-      toast.error("An error occurred while updating payment step");
+      toast.error("خطایی در به‌روزرسانی مرحله پرداخت رخ داد");
     }
   };
 
@@ -133,7 +135,7 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
       <Card>
         <CardContent className="p-6">
           <div className="text-center py-4">
-            <p className="text-gray-500">Loading payment steps...</p>
+            <p className="text-gray-500">در حال بارگذاری مراحل پرداخت...</p>
           </div>
         </CardContent>
       </Card>
@@ -144,43 +146,43 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 flex items-center space-x-2">
+          <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            <span>Payment Steps</span>
+            <span>مراحل پرداخت</span>
           </h3>
           {paymentSteps.length === 0 && (
             <Button
               onClick={() => setShowAddForm(true)}
               size="sm"
-              className="flex items-center space-x-2"
+              className="flex items-center gap-2"
             >
+              <span>ایجاد مراحل</span>
               <Plus className="h-4 w-4" />
-              <span>Create Steps</span>
             </Button>
           )}
         </div>
 
         {/* Payment Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600">Total Cost</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-900">{formatCurrency(typeof recordCost === 'string' ? parseFloat(recordCost) : recordCost)}</p>
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 order-3">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 font-semibold">کل هزینه</p>
+            <p className="text-sm sm:text-lg font-bold text-gray-900">{formatCurrency(typeof recordCost === 'string' ? parseFloat(recordCost) : recordCost)}</p>
           </div>
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600">Paid Amount</p>
-            <p className="text-base sm:text-lg font-semibold text-green-600">{formatCurrency(calculateTotalPaid())}</p>
+          <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 order-2">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 font-semibold">مبلغ پرداخت شده</p>
+            <p className="text-sm sm:text-lg font-bold text-green-600">{formatCurrency(calculateTotalPaid())}</p>
           </div>
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600">Remaining Debt</p>
-            <p className="text-base sm:text-lg font-semibold text-red-600">{formatCurrency(calculateRemainingDebt())}</p>
+          <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200 order-1">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 font-semibold">بدهی باقیمانده</p>
+            <p className="text-sm sm:text-lg font-bold text-red-600">{formatCurrency(calculateRemainingDebt())}</p>
           </div>
         </div>
 
         {paymentSteps.length === 0 ? (
           <div className="text-center py-8">
             <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No payment steps defined</p>
-            <p className="text-sm text-gray-400 mt-1">Create payment steps to track installments</p>
+            <p className="text-gray-500">مراحل پرداختی تعریف نشده است</p>
+            <p className="text-sm text-gray-400 mt-1">برای پیگیری اقساط، مراحل پرداخت ایجاد کنید</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -188,7 +190,7 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
               <div key={step.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-4">
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                         step.isPaid ? 'bg-green-100' : 'bg-red-100'
                       }`}>
@@ -199,28 +201,28 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Step {step.stepNumber}: {formatCurrency(typeof step.amount === 'string' ? parseFloat(step.amount) : step.amount)}
+                            مرحله {step.stepNumber.toLocaleString('fa-IR')}: {formatCurrency(typeof step.amount === 'string' ? parseFloat(step.amount) : step.amount)}
                           </h4>
                           <Badge className={step.isPaid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                            {step.isPaid ? "Paid" : "Unpaid"}
+                            {step.isPaid ? "پرداخت شده" : "پرداخت نشده"}
                           </Badge>
                         </div>
-                        <div className="mt-2 space-y-1">
+                        <div className="mt-2 space-y-1 text-right">
                           {step.dueDate && (
                             <p className="text-xs sm:text-sm text-gray-600">
-                              Due: {formatDate(new Date(step.dueDate))}
+                              سررسید: {formatDate(new Date(step.dueDate))}
                             </p>
                           )}
                           {step.isPaid && step.paidDate && (
                             <p className="text-xs sm:text-sm text-green-600">
-                              Paid: {formatDate(new Date(step.paidDate))}
+                              پرداخت شده: {formatDate(new Date(step.paidDate))}
                             </p>
                           )}
                           {step.paymentMethod && (
                             <p className="text-xs sm:text-sm text-gray-500">
-                              Method: {step.paymentMethod}
+                              روش: {translatePaymentMethod(step.paymentMethod)}
                             </p>
                           )}
                           {step.notes && (
@@ -231,15 +233,15 @@ export function PaymentStepsManager({ recordId, recordCost, onUpdate }: PaymentS
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end space-x-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingStep(step)}
-                      className="flex items-center space-x-1 text-xs sm:text-sm"
+                      className="flex items-center gap-1 text-xs sm:text-sm"
                     >
+                      <span className="hidden sm:inline">ویرایش</span>
                       <Edit className="h-4 w-4" />
-                      <span className="hidden sm:inline">Edit</span>
                     </Button>
                   </div>
                 </div>
@@ -300,7 +302,7 @@ function PaymentStepsForm({
     const totalAmount = steps.reduce((sum, step) => sum + parseFloat(step.amount || "0"), 0);
     
     if (Math.abs(totalAmount - recordCost) > 0.01) {
-      toast.error(`Total amount (${totalAmount}) must equal record cost (${recordCost})`);
+      toast.error(`مجموع مبلغ (${totalAmount.toLocaleString('fa-IR')}) باید برابر با هزینه پرونده (${recordCost.toLocaleString('fa-IR')}) باشد`);
       return;
     }
 
@@ -312,64 +314,75 @@ function PaymentStepsForm({
   };
 
   return (
-    <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-      <h4 className="font-medium text-gray-900 mb-4">Create Payment Steps</h4>
+    <div className="mt-6 p-6 border-2 border-blue-200 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+      <h4 className="font-bold text-gray-900 mb-6 text-right text-lg">ایجاد مراحل پرداخت</h4>
       <div className="space-y-4">
         {steps.map((step, index) => (
-          <div key={index} className="flex items-center space-x-4">
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Amount"
-                value={step.amount}
-                onChange={(e) => {
-                  const newSteps = [...steps];
-                  newSteps[index].amount = e.target.value;
-                  setSteps(newSteps);
-                }}
-              />
-              <Input
-                type="date"
-                placeholder="Due Date"
-                value={step.dueDate}
-                onChange={(e) => {
-                  const newSteps = [...steps];
-                  newSteps[index].dueDate = e.target.value;
-                  setSteps(newSteps);
-                }}
-              />
-              <Input
-                placeholder="Notes"
-                value={step.notes}
-                onChange={(e) => {
-                  const newSteps = [...steps];
-                  newSteps[index].notes = e.target.value;
-                  setSteps(newSteps);
-                }}
-              />
-            </div>
+          <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 bg-white p-4 rounded-lg shadow-sm">
             {steps.length > 1 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleRemoveStep(index)}
+                className="text-red-600 hover:bg-red-50 order-last sm:order-first sm:self-end mb-0 sm:mb-1"
               >
-                Remove
+                حذف
               </Button>
             )}
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="order-3 sm:order-1">
+                <label className="block text-xs font-semibold text-gray-700 mb-1 text-right">یادداشت</label>
+                <Input
+                  placeholder="یادداشت"
+                  value={step.notes}
+                  onChange={(e) => {
+                    const newSteps = [...steps];
+                    newSteps[index].notes = e.target.value;
+                    setSteps(newSteps);
+                  }}
+                  className="text-right"
+                />
+              </div>
+              <div className="order-2 sm:order-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1 text-right">تاریخ سررسید</label>
+                <DateInputWithJalali
+                  value={step.dueDate}
+                  onChange={(date) => {
+                    const newSteps = [...steps];
+                    newSteps[index].dueDate = date;
+                    setSteps(newSteps);
+                  }}
+                />
+              </div>
+              <div className="order-1 sm:order-3">
+                <label className="block text-xs font-semibold text-gray-700 mb-1 text-right">مبلغ</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="مبلغ"
+                  value={step.amount}
+                  onChange={(e) => {
+                    const newSteps = [...steps];
+                    newSteps[index].amount = e.target.value;
+                    setSteps(newSteps);
+                  }}
+                  className="text-right"
+                />
+              </div>
+            </div>
           </div>
         ))}
-        <Button variant="outline" onClick={handleAddStep}>
-          Add Step
+        <Button variant="outline" onClick={handleAddStep} className="w-full border-dashed border-2">
+          <Plus className="h-4 w-4 ml-2" />
+          افزودن مرحله
         </Button>
       </div>
-      <div className="flex justify-end space-x-4 mt-4">
+      <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          لغو
         </Button>
-        <Button onClick={handleSubmit}>
-          Create Steps
+        <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+          ایجاد مراحل
         </Button>
       </div>
     </div>
@@ -395,60 +408,61 @@ function PaymentStepEditForm({
   };
 
   return (
-    <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-      <h4 className="font-medium text-gray-900 mb-4">Edit Payment Step</h4>
+    <div className="mt-6 p-6 border-2 border-green-200 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50">
+      <h4 className="font-bold text-gray-900 mb-6 text-right text-lg">ویرایش مرحله پرداخت</h4>
       <div className="space-y-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end gap-2 bg-white p-4 rounded-lg">
+          <label htmlFor="mark-as-paid" className="text-sm font-semibold text-gray-700">علامت‌گذاری به عنوان پرداخت شده</label>
           <input
             type="checkbox"
             checked={isPaid}
             onChange={(e) => setIsPaid(e.target.checked)}
-            className="rounded"
+            className="rounded w-5 h-5"
+            id="mark-as-paid"
           />
-          <label className="text-sm font-medium text-gray-700">Mark as Paid</label>
         </div>
         
         {isPaid && (
-          <>
+          <div className="space-y-4 bg-white p-4 rounded-lg">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Method
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                روش پرداخت
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select method</option>
-                <option value="CASH">Cash</option>
-                <option value="CARD">Card</option>
-                <option value="INSURANCE">Insurance</option>
-                <option value="CHECK">Check</option>
-                <option value="OTHER">Other</option>
+                <option value="">انتخاب روش</option>
+                <option value="CASH">نقدی</option>
+                <option value="CARD">کارت</option>
+                <option value="INSURANCE">بیمه</option>
+                <option value="CHECK">چک</option>
+                <option value="OTHER">سایر</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
+              <label className="block text-sm font-semibold text-gray-700 mb-2 text-right">
+                یادداشت
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 rows={3}
-                placeholder="Payment notes"
+                placeholder="یادداشت پرداخت"
               />
             </div>
-          </>
+          </div>
         )}
       </div>
-      <div className="flex justify-end space-x-4 mt-4">
+      <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          لغو
         </Button>
-        <Button onClick={handleSubmit}>
-          Update Step
+        <Button onClick={handleSubmit} className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+          به‌روزرسانی مرحله
         </Button>
       </div>
     </div>

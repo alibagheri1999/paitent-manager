@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dental Patient Manager",
-  description: "Comprehensive dental clinic patient management system",
+  title: "مدیریت بیماران دندانپزشکی",
+  description: "سیستم جامع مدیریت بیماران کلینیک دندانپزشکی",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fa" dir="rtl">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

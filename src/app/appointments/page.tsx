@@ -12,25 +12,31 @@ export default function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [viewingAppointment, setViewingAppointment] = useState<any>(null);
+  const [formTriggerElement, setFormTriggerElement] = useState<HTMLElement | null>(null);
+  const [viewTriggerElement, setViewTriggerElement] = useState<HTMLElement | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleDateSelect = (date: string) => {
+  const handleDateSelect = (date: string, triggerElement?: HTMLElement) => {
     setSelectedDate(date);
+    setFormTriggerElement(triggerElement || null);
     setIsFormOpen(true);
   };
 
-  const handleEditAppointment = (appointment: any) => {
+  const handleEditAppointment = (appointment: any, triggerElement?: HTMLElement) => {
     setViewingAppointment(appointment);
+    setViewTriggerElement(triggerElement || null);
   };
 
   const handleFormClose = () => {
     setIsFormOpen(false);
     setEditingAppointment(null);
     setSelectedDate("");
+    setFormTriggerElement(null);
   };
 
   const handleDetailsClose = () => {
     setViewingAppointment(null);
+    setViewTriggerElement(null);
   };
 
   const handleRefresh = () => {
@@ -42,17 +48,17 @@ export default function AppointmentsPage() {
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-bounce-in">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">Appointments</h1>
-            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">Manage your dental clinic appointments</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-right">نوبت‌ها</h1>
+            <p className="text-sm sm:text-base text-gray-600 animate-slide-in-right animation-delay-500">مدیریت نوبت‌های کلینیک دندانپزشکی</p>
           </div>
           <div className="animate-slide-in-left animation-delay-500">
             <ExportButton
               exportType="appointments"
               filename="appointments_export"
               variant="outline"
-              className="w-full sm:w-auto hover-lift hover:animate-wiggle"
+              className="w-full sm:w-auto hover-lift "
             >
-              Export Appointments
+              خروجی اکسل نوبت‌ها
             </ExportButton>
           </div>
         </div>
@@ -67,8 +73,10 @@ export default function AppointmentsPage() {
 
         {isFormOpen && (
           <AppointmentForm
+            isOpen={isFormOpen}
             selectedDate={selectedDate}
             appointment={editingAppointment}
+            triggerElement={formTriggerElement}
             onClose={handleFormClose}
             onSuccess={handleRefresh}
           />
@@ -76,7 +84,9 @@ export default function AppointmentsPage() {
 
         {viewingAppointment && (
           <AppointmentDetailsModal
+            isOpen={true}
             appointment={viewingAppointment}
+            triggerElement={viewTriggerElement}
             onClose={handleDetailsClose}
             onRefresh={handleRefresh}
           />

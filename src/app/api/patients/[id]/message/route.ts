@@ -45,7 +45,7 @@ export async function POST(
     }
 
     // Send SMS message
-    const fullMessage = `Message from ${session.user?.name || 'Dental Clinic'}: ${message.trim()}`;
+    const fullMessage = `پیام از ${session.user?.name || 'کلینیک دندانپزشکی'}: ${message.trim()}`;
     
     try {
       await smsService.sendSMS({

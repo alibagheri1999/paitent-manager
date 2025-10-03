@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { translateTreatmentType, translatePaymentStatus } from "@/lib/translate-enums";
 import { RecordManagementPanel } from "./record-management-panel";
 
 interface Record {
@@ -39,16 +40,17 @@ interface Record {
 
 interface RecordsListProps {
   records: Record[];
-  onEdit: (record: Record) => void;
+  onEdit: (record: Record, triggerElement?: HTMLElement) => void;
   onRefresh: () => void;
   isLoading?: boolean;
 }
 
 export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsListProps) {
   const [viewingRecord, setViewingRecord] = useState<Record | null>(null);
+  const [viewTriggerElement, setViewTriggerElement] = useState<HTMLElement | null>(null);
 
   const handleDelete = async (recordId: string) => {
-    if (confirm("Are you sure you want to delete this record?")) {
+    if (confirm("آیا مطمئن هستید که می‌خواهید این پرونده را حذف کنید؟")) {
       try {
         const response = await fetch(`/api/records/${recordId}`, {
           method: "DELETE",
@@ -96,33 +98,33 @@ export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsLi
         <div className="space-y-4">
           {isLoading ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Loading records...</p>
+              <p className="text-gray-500">در حال بارگذاری پرونده‌ها...</p>
             </div>
           ) : records.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No records found</p>
+              <p className="text-gray-500">پرونده‌ای یافت نشد</p>
             </div>
           ) : (
             records.map((record) => (
               <div key={record.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="flex-1 text-right">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <h3 className="font-medium text-gray-900 text-sm sm:text-base">
                             {record.patient.firstName} {record.patient.lastName}
                           </h3>
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge className={getTreatmentTypeColor(record.treatmentType)}>
-                              {record.treatmentType.replace("_", " ")}
+                              {translateTreatmentType(record.treatmentType)}
                             </Badge>
                             <Badge variant={record.isCompleted ? "default" : "secondary"}>
-                              {record.isCompleted ? "Completed" : "Pending"}
+                              {record.isCompleted ? "تکمیل شده" : "در انتظار"}
                             </Badge>
                             {record.paymentStatus && (
                               <Badge className={record.paymentStatus === "PAID" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                                {record.paymentStatus}
+                                {translatePaymentStatus(record.paymentStatus)}
                               </Badge>
                             )}
                           </div>
@@ -130,33 +132,38 @@ export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsLi
                         <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
                           {record.description}
                         </p>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-2 text-xs sm:text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2 text-xs sm:text-sm text-gray-500">
                           <span>{formatDate(new Date(record.date))}</span>
                           <span className="font-medium text-green-600">
                             {formatCurrency(record.cost)}
                           </span>
                           {record.files && record.files.length > 0 && (
-                            <span>{record.files.length} file{record.files.length !== 1 ? 's' : ''}</span>
+                            <span>{record.files.length.toLocaleString('fa-IR')} فایل</span>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-end space-x-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => setViewingRecord(record)}
+                      onClick={(e) => {
+                        setViewTriggerElement(e.currentTarget);
+                        setViewingRecord(record);
+                      }}
                       className="h-8 w-8"
+                      title="مشاهده جزئیات"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => onEdit(record)}
+                      onClick={(e) => onEdit(record, e.currentTarget)}
                       className="h-8 w-8"
+                      title="ویرایش"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -165,6 +172,7 @@ export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsLi
                       size="icon"
                       onClick={() => handleDelete(record.id)}
                       className="h-8 w-8 text-red-600 hover:text-red-700"
+                      title="حذف"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -179,7 +187,11 @@ export function RecordsList({ records, onEdit, onRefresh, isLoading }: RecordsLi
       {viewingRecord && (
         <RecordManagementPanel
           record={viewingRecord}
-          onClose={() => setViewingRecord(null)}
+          triggerElement={viewTriggerElement}
+          onClose={() => {
+            setViewingRecord(null);
+            setViewTriggerElement(null);
+          }}
           onRefresh={onRefresh}
         />
       )}

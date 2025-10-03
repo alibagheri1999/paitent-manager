@@ -33,14 +33,14 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-        toast.error("Invalid credentials");
+        toast.error("ایمیل یا رمز عبور اشتباه است");
       } else {
         const session = await getSession();
-        toast.success("Welcome back! Redirecting to dashboard...");
+        toast.success("خوش آمدید! در حال انتقال به داشبورد...");
         router.push("/dashboard");
       }
     } catch (error) {
-      toast.error("An error occurred");
+      toast.error("خطایی رخ داد");
     } finally {
       setIsLoading(false);
     }
@@ -83,10 +83,10 @@ export default function SignIn() {
               <Stethoscope className="h-10 w-10 text-white animate-bounce" />
             </div>
             <h1 className="text-4xl font-bold text-white mb-2 animate-fade-in">
-              DentalCare
+              دندان‌پزشکی
             </h1>
             <p className="text-blue-200 text-lg animate-fade-in animation-delay-500">
-              Professional Clinic Management
+              مدیریت حرفه‌ای کلینیک
             </p>
           </div>
 
@@ -94,17 +94,17 @@ export default function SignIn() {
           <Card className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl animate-slide-up">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-white">
-                Welcome Back
+                خوش آمدید
               </CardTitle>
               <CardDescription className="text-blue-200">
-                Sign in to access your dental clinic management system
+                برای دسترسی به سیستم مدیریت کلینیک دندانپزشکی وارد شوید
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium text-white">
-                    Email Address
+                    آدرس ایمیل
                   </label>
                   <div className="relative">
                     <Input
@@ -112,7 +112,7 @@ export default function SignIn() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder="ایمیل خود را وارد کنید"
                       className="bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30 focus:border-white/50 transition-all duration-300"
                       required
                     />
@@ -121,7 +121,7 @@ export default function SignIn() {
 
                 <div className="space-y-2">
                   <label htmlFor="password" className="block text-sm font-medium text-white">
-                    Password
+                    رمز عبور
                   </label>
                   <div className="relative">
                     <Input
@@ -129,14 +129,14 @@ export default function SignIn() {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      className="bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30 focus:border-white/50 transition-all duration-300 pr-10"
+                      placeholder="رمز عبور خود را وارد کنید"
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30 focus:border-white/50 transition-all duration-300 pl-10"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -149,12 +149,12 @@ export default function SignIn() {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Signing in...</span>
+                      <span>در حال ورود...</span>
                     </div>
                   ) : (
-                    "Sign In"
+                    "ورود به سیستم"
                   )}
                 </Button>
               </form>
@@ -162,19 +162,19 @@ export default function SignIn() {
               {/* Demo Credentials */}
               <div className="mt-8 p-4 bg-white/10 rounded-lg border border-white/20">
                 <h3 className="text-sm font-semibold text-white mb-3 text-center">
-                  Demo Credentials
+                  اطلاعات آزمایشی
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center text-white/80">
-                    <span>Admin:</span>
+                    <span>مدیر:</span>
                     <span className="font-mono">admin@dentalclinic.com</span>
                   </div>
                   <div className="flex justify-between items-center text-white/80">
-                    <span>Doctor:</span>
+                    <span>دکتر:</span>
                     <span className="font-mono">doctor@dentalclinic.com</span>
                   </div>
                   <div className="flex justify-between items-center text-white/80">
-                    <span>Password:</span>
+                    <span>رمز عبور:</span>
                     <span className="font-mono">admin123</span>
                   </div>
                 </div>
@@ -186,15 +186,15 @@ export default function SignIn() {
           <div className="mt-8 grid grid-cols-3 gap-4 text-center">
             <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 border border-white/20 animate-fade-in animation-delay-1000">
               <Users className="h-6 w-6 text-white mx-auto mb-2" />
-              <p className="text-xs text-white/80">Patient Management</p>
+              <p className="text-xs text-white/80">مدیریت بیماران</p>
             </div>
             <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 border border-white/20 animate-fade-in animation-delay-1500">
               <Calendar className="h-6 w-6 text-white mx-auto mb-2" />
-              <p className="text-xs text-white/80">Appointments</p>
+              <p className="text-xs text-white/80">نوبت‌دهی</p>
             </div>
             <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 border border-white/20 animate-fade-in animation-delay-2000">
               <TrendingUp className="h-6 w-6 text-white mx-auto mb-2" />
-              <p className="text-xs text-white/80">Analytics</p>
+              <p className="text-xs text-white/80">گزارش‌گیری</p>
             </div>
           </div>
         </div>

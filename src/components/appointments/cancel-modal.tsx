@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, AlertTriangle } from "lucide-react";
+import { PositionedModal } from "@/components/ui/positioned-modal";
+import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
+import { translateTreatmentType } from "@/lib/translate-enums";
 
 interface Appointment {
   id: string;
@@ -21,12 +23,14 @@ interface Appointment {
 }
 
 interface CancelModalProps {
+  isOpen: boolean;
   appointment: Appointment;
+  triggerElement?: HTMLElement | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function CancelModal({ appointment, onClose, onSuccess }: CancelModalProps) {
+export function CancelModal({ isOpen, appointment, triggerElement, onClose, onSuccess }: CancelModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reason, setReason] = useState("");
 
@@ -52,84 +56,85 @@ export function CancelModal({ appointment, onClose, onSuccess }: CancelModalProp
       });
 
       if (response.ok) {
-        toast.success("Appointment cancelled successfully and SMS sent to patient");
+        toast.success("نوبت با موفقیت لغو شد و پیامک برای بیمار ارسال شد");
         onSuccess();
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to cancel appointment");
+        toast.error(error.error || "خطا در لغو نوبت");
       }
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      toast.error("An error occurred while cancelling the appointment");
+      toast.error("خطا در لغو نوبت");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="flex items-center space-x-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
-            <span>Cancel Appointment</span>
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="font-medium text-red-900">
+    <PositionedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      triggerElement={triggerElement}
+      title={
+        <div className="flex items-center justify-end gap-2 text-white">
+          <span>لغو نوبت</span>
+          <AlertTriangle className="h-5 w-5" />
+        </div>
+      }
+      maxWidth="650px"
+    >
+      <div className="p-6">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-right">
+            <p className="font-semibold text-red-900 text-lg">
               {appointment.patient.firstName} {appointment.patient.lastName}
             </p>
-            <p className="text-sm text-red-700">
-              {new Date(appointment.date).toLocaleDateString()} at {appointment.startTime}
+            <p className="text-sm text-red-700 mt-1">
+              {formatDate(new Date(appointment.date))} در ساعت {appointment.startTime}
             </p>
             {appointment.treatmentType && (
-              <p className="text-xs text-red-600 capitalize">
-                {appointment.treatmentType.toLowerCase().replace("_", " ")}
+              <p className="text-xs text-red-600 mt-1">
+                {translateTreatmentType(appointment.treatmentType)}
               </p>
             )}
           </div>
+        </div>
 
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <strong>Warning:</strong> This action will cancel the appointment and send an SMS notification to the patient.
-            </p>
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800 text-right">
+            <strong>هشدار:</strong> این عملیات نوبت را لغو کرده و پیامک اطلاع‌رسانی برای بیمار ارسال می‌کند.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              دلیل لغو *
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent text-right"
+              rows={3}
+              placeholder="لطفاً دلیل لغو نوبت را وارد کنید..."
+              required
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reason for Cancellation *
-              </label>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                rows={3}
-                placeholder="Please provide a reason for cancelling this appointment..."
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Keep Appointment
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting || !reason.trim()}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                {isSubmitting ? "Cancelling..." : "Cancel Appointment"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex justify-start gap-3 pt-4 border-t">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !reason.trim()}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isSubmitting ? "در حال لغو..." : "لغو نوبت"}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              نگه داشتن نوبت
+            </Button>
+          </div>
+        </form>
+      </div>
+    </PositionedModal>
   );
 }

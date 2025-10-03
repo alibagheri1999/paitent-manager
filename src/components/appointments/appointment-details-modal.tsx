@@ -1,27 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Calendar, Clock, User, Phone, Hash, MessageSquare } from "lucide-react";
+import { PositionedModal } from "@/components/ui/positioned-modal";
+import { Calendar, Clock, User, Phone, Hash, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatDate, formatTime } from "@/lib/utils";
+import { translateAppointmentStatus, translateTreatmentType } from "@/lib/translate-enums";
 
 interface AppointmentDetailsModalProps {
+  isOpen: boolean;
   appointment: any;
+  triggerElement?: HTMLElement | null;
   onClose: () => void;
   onRefresh: () => void;
 }
 
-export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: AppointmentDetailsModalProps) {
+export function AppointmentDetailsModal({ isOpen, appointment, triggerElement, onClose, onRefresh }: AppointmentDetailsModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const [showCancelForm, setShowCancelForm] = useState(false);
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (newStatus === "CANCELLED" && !cancellationReason.trim()) {
-      toast.error("Please provide a reason for cancellation");
+      toast.error("لطفاً دلیل لغو را وارد کنید");
       return;
     }
 
@@ -40,25 +44,25 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
       });
 
       if (response.ok) {
-        toast.success(`Appointment ${newStatus.toLowerCase()} successfully`);
+        toast.success(`نوبت با موفقیت ${translateAppointmentStatus(newStatus)} شد`);
         if (newStatus === "CANCELLED") {
-          toast.info("SMS notification sent to patient");
+          toast.info("پیامک اطلاع‌رسانی برای بیمار ارسال شد");
         }
         onRefresh();
         onClose();
       } else {
         const error = await response.json();
-        toast.error(error.message || "Failed to update appointment");
+        toast.error(error.message || "خطا در به‌روزرسانی نوبت");
       }
     } catch (error) {
-      toast.error("An error occurred while updating the appointment");
+      toast.error("خطا در به‌روزرسانی نوبت");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this appointment? This will send an SMS notification to the patient.")) {
+    if (!confirm("آیا مطمئن هستید که می‌خواهید این نوبت را حذف کنید؟ پیامک اطلاع‌رسانی برای بیمار ارسال خواهد شد.")) {
       return;
     }
 
@@ -70,16 +74,16 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
       });
 
       if (response.ok) {
-        toast.success("Appointment deleted successfully");
-        toast.info("SMS notification sent to patient");
+        toast.success("نوبت با موفقیت حذف شد");
+        toast.info("پیامک اطلاع‌رسانی برای بیمار ارسال شد");
         onRefresh();
         onClose();
       } else {
         const error = await response.json();
-        toast.error(error.message || "Failed to delete appointment");
+        toast.error(error.message || "خطا در حذف نوبت");
       }
     } catch (error) {
-      toast.error("An error occurred while deleting the appointment");
+      toast.error("خطا در حذف نوبت");
     } finally {
       setIsLoading(false);
     }
@@ -96,79 +100,79 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
     };
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status as keyof typeof statusColors] || statusColors.SCHEDULED}`}>
-        {status.replace("_", " ")}
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[status as keyof typeof statusColors] || statusColors.SCHEDULED}`}>
+        {translateAppointmentStatus(status)}
       </span>
     );
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Appointment Details
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
+    <PositionedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      triggerElement={triggerElement}
+      title={
+        <div className="flex items-center gap-2">
+          <span>جزئیات نوبت</span>
+          <Calendar className="h-5 w-5" />
+        </div>
+      }
+      maxWidth="850px"
+    >
+      <div className="space-y-6 p-6">
           {/* Patient Information */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Patient Information
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-4 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-lg mb-3 flex items-center justify-end gap-2 text-right">
+              <span>اطلاعات بیمار</span>
+              <User className="h-5 w-5 text-blue-600" />
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Patient Name</label>
-                <p className="text-gray-900">{appointment.patientName}</p>
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">نام بیمار</label>
+                <p className="text-gray-900 font-semibold">{appointment.patientName}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Status</label>
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">وضعیت</label>
                 <div className="mt-1">{getStatusBadge(appointment.status)}</div>
               </div>
             </div>
           </div>
 
           {/* Appointment Details */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Appointment Details
+          <div className="bg-gradient-to-br from-green-50 to-green-100/50 p-4 rounded-lg border border-green-200">
+            <h3 className="font-semibold text-lg mb-3 flex items-center justify-end gap-2 text-right">
+              <span>جزئیات نوبت</span>
+              <Clock className="h-5 w-5 text-green-600" />
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Date</label>
-                <p className="text-gray-900">
-                  {format(new Date(appointment.start), "EEEE, MMMM do, yyyy")}
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">تاریخ</label>
+                <p className="text-gray-900 font-semibold">
+                  {formatDate(new Date(appointment.start))}
                 </p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Time</label>
-                <p className="text-gray-900">
-                  {format(new Date(appointment.start), "h:mm a")} - {format(new Date(appointment.end), "h:mm a")}
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">زمان</label>
+                <p className="text-gray-900 font-semibold" dir="ltr">
+                  {formatTime(new Date(appointment.start))} - {formatTime(new Date(appointment.end))}
                 </p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Treatment Type</label>
-                <p className="text-gray-900">{appointment.treatmentType || "Not specified"}</p>
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">نوع درمان</label>
+                <p className="text-gray-900 font-semibold">{appointment.treatmentType ? translateTreatmentType(appointment.treatmentType) : "تعیین نشده"}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Description</label>
-                <p className="text-gray-900">{appointment.description || "No description"}</p>
+              <div className="text-right">
+                <label className="text-sm font-medium text-gray-600 block">توضیحات</label>
+                <p className="text-gray-900 font-semibold">{appointment.description || "بدون توضیحات"}</p>
               </div>
             </div>
             {appointment.notes && (
-              <div className="mt-4">
-                <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <div className="mt-4 text-right">
+                <label className="text-sm font-medium text-gray-600 flex items-center justify-end gap-2">
+                  <span>یادداشت‌ها</span>
                   <MessageSquare className="h-4 w-4" />
-                  Notes
                 </label>
-                <p className="text-gray-900 mt-1">{appointment.notes}</p>
+                <p className="text-gray-900 mt-1 bg-white/50 p-2 rounded">{appointment.notes}</p>
               </div>
             )}
           </div>
@@ -176,34 +180,34 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
           {/* Cancellation Form */}
           {showCancelForm && (
             <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h3 className="font-semibold text-lg mb-3 text-red-800">Cancel Appointment</h3>
+              <h3 className="font-semibold text-lg mb-3 text-red-800 text-right">لغو نوبت</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason for Cancellation *
+                  <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+                    دلیل لغو *
                   </label>
                   <textarea
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent text-right"
                     rows={3}
-                    placeholder="Please provide a reason for cancelling this appointment..."
+                    placeholder="لطفاً دلیل لغو نوبت را وارد کنید..."
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-start">
                   <Button
                     onClick={() => handleStatusUpdate("CANCELLED")}
                     disabled={isLoading}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    {isLoading ? "Cancelling..." : "Confirm Cancellation"}
+                    {isLoading ? "در حال لغو..." : "تایید لغو"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowCancelForm(false)}
                     disabled={isLoading}
                   >
-                    Cancel
+                    انصراف
                   </Button>
                 </div>
               </div>
@@ -211,14 +215,14 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t">
+          <div className="flex flex-wrap gap-2 pt-4 border-t justify-start">
             {appointment.status === "SCHEDULED" && (
               <Button
                 onClick={() => handleStatusUpdate("CONFIRMED")}
                 disabled={isLoading}
                 className="bg-green-600 hover:bg-green-700"
               >
-                Confirm
+                تایید
               </Button>
             )}
             
@@ -228,7 +232,7 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
                 disabled={isLoading}
                 className="bg-yellow-600 hover:bg-yellow-700"
               >
-                Start
+                شروع
               </Button>
             )}
             
@@ -238,7 +242,7 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
                 disabled={isLoading}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Complete
+                تکمیل
               </Button>
             )}
 
@@ -249,7 +253,7 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
                 variant="outline"
                 className="border-red-300 text-red-600 hover:bg-red-50"
               >
-                Cancel Appointment
+                لغو نوبت
               </Button>
             )}
 
@@ -259,11 +263,10 @@ export function AppointmentDetailsModal({ appointment, onClose, onRefresh }: App
               variant="outline"
               className="border-red-300 text-red-600 hover:bg-red-50"
             >
-              Delete Appointment
+              حذف نوبت
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+      </div>
+    </PositionedModal>
   );
 }

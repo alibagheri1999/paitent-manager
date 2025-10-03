@@ -29,16 +29,17 @@ interface Patient {
 
 interface PatientListProps {
   patients: Patient[];
-  onEdit: (patient: Patient) => void;
+  onEdit: (patient: Patient, triggerElement?: HTMLElement) => void;
   onRefresh: () => void;
   isLoading?: boolean;
 }
 
 export function PatientList({ patients, onEdit, onRefresh, isLoading }: PatientListProps) {
   const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
+  const [viewTriggerElement, setViewTriggerElement] = useState<HTMLElement | null>(null);
 
   const handleDelete = async (patientId: string) => {
-    if (confirm("Are you sure you want to delete this patient?")) {
+    if (confirm("آیا مطمئن هستید که می‌خواهید این بیمار را حذف کنید؟")) {
       try {
         const response = await fetch(`/api/patients/${patientId}`, {
           method: "DELETE",
@@ -59,53 +60,58 @@ export function PatientList({ patients, onEdit, onRefresh, isLoading }: PatientL
         <div className="space-y-4">
           {isLoading ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Loading patients...</p>
+              <p className="text-gray-500">در حال بارگذاری بیماران...</p>
             </div>
           ) : patients.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No patients found</p>
+              <p className="text-gray-500">بیماری یافت نشد</p>
             </div>
           ) : (
             patients.map((patient) => (
               <div key={patient.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900">
                           {patient.firstName} {patient.lastName}
                         </h3>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-1 text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-gray-500">
                           {patient.email && <span className="truncate">{patient.email}</span>}
                           {patient.phone && <span>{patient.phone}</span>}
-                          {patient.nationalId && <span className="hidden sm:inline">ID: {patient.nationalId}</span>}
+                          {patient.nationalId && <span className="hidden sm:inline">کد ملی: {patient.nationalId}</span>}
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
                           <Badge variant={patient.isActive ? "default" : "secondary"}>
-                            {patient.isActive ? "Active" : "Inactive"}
+                            {patient.isActive ? "فعال" : "غیرفعال"}
                           </Badge>
                           <span className="text-xs text-gray-400">
-                            Added {formatDate(new Date(patient.createdAt))}
+                            ثبت شده در {formatDate(new Date(patient.createdAt))}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-end space-x-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => setViewingPatient(patient)}
+                      onClick={(e) => {
+                        setViewTriggerElement(e.currentTarget);
+                        setViewingPatient(patient);
+                      }}
                       className="h-8 w-8"
+                      title="مشاهده جزئیات"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => onEdit(patient)}
+                      onClick={(e) => onEdit(patient, e.currentTarget)}
                       className="h-8 w-8"
+                      title="ویرایش"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -114,6 +120,7 @@ export function PatientList({ patients, onEdit, onRefresh, isLoading }: PatientL
                       size="icon"
                       onClick={() => handleDelete(patient.id)}
                       className="h-8 w-8 text-red-600 hover:text-red-700"
+                      title="حذف"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -128,7 +135,11 @@ export function PatientList({ patients, onEdit, onRefresh, isLoading }: PatientL
       {viewingPatient && (
         <PatientManagementPanel
           patient={viewingPatient}
-          onClose={() => setViewingPatient(null)}
+          triggerElement={viewTriggerElement}
+          onClose={() => {
+            setViewingPatient(null);
+            setViewTriggerElement(null);
+          }}
           onRefresh={onRefresh}
         />
       )}

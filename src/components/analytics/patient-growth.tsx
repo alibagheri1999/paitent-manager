@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { toJalali } from "@/lib/utils";
 
 interface PatientGrowthData {
   date: string;
@@ -32,21 +33,24 @@ export function PatientGrowth() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Patient Growth</CardTitle>
+        <CardTitle className="text-right">رشد بیماران</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date" 
-                tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                tickFormatter={(value) => toJalali(value, 'jMM/jDD')}
               />
-              <YAxis />
+              <YAxis 
+                tickFormatter={(value) => value.toLocaleString('fa-IR')}
+                orientation="right"
+              />
               <Tooltip 
-                labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                formatter={(value: number) => [value, "Patients"]}
+                labelFormatter={(value) => toJalali(value, 'jD jMMMM jYYYY')}
+                formatter={(value: number) => [value.toLocaleString('fa-IR'), "بیماران"]}
               />
               <Line 
                 type="monotone" 

@@ -4,16 +4,18 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { PositionedModal } from "@/components/ui/positioned-modal";
+import { DateInputWithJalali } from "@/components/ui/date-input-with-jalali";
 
 const patientSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  firstName: z.string().min(1, "نام الزامی است"),
+  lastName: z.string().min(1, "نام خانوادگی الزامی است"),
+  email: z.string().email("ایمیل نامعتبر است").optional().or(z.literal("")),
   phone: z.string().optional(),
   nationalId: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -34,9 +36,11 @@ interface PatientFormProps {
   patient?: any;
   onClose: () => void;
   onSuccess: () => void;
+  isOpen: boolean;
+  triggerElement?: HTMLElement | null;
 }
 
-export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
+export function PatientForm({ patient, onClose, onSuccess, isOpen, triggerElement }: PatientFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
@@ -44,6 +48,8 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: patient ? {
@@ -103,223 +109,257 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
       });
 
       if (response.ok) {
-        toast.success(patient ? "Patient updated successfully" : "Patient created successfully");
+        toast.success(patient ? "بیمار با موفقیت به‌روزرسانی شد" : "بیمار با موفقیت ایجاد شد");
         onSuccess();
       } else {
         const error = await response.json();
-        toast.error(error.message || "Failed to save patient");
+        toast.error(error.message || "خطا در ذخیره بیمار");
       }
     } catch (error) {
-      toast.error("An error occurred while saving the patient");
+      toast.error("خطایی در ذخیره بیمار رخ داد");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>{patient ? "Edit Patient" : "Add New Patient"}</CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <PositionedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      triggerElement={triggerElement}
+      title={patient ? "ویرایش بیمار" : "افزودن بیمار جدید"}
+      maxWidth="800px"
+    >
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name *
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  نام <span className="text-red-500">*</span>
                 </label>
                 <Input
                   {...register("firstName")}
-                  placeholder="Enter first name"
+                  placeholder="نام را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.firstName.message}
+                  </p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name *
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  نام خانوادگی <span className="text-red-500">*</span>
                 </label>
                 <Input
                   {...register("lastName")}
-                  placeholder="Enter last name"
+                  placeholder="نام خانوادگی را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.lastName.message}
+                  </p>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  ایمیل
                 </label>
                 <Input
                   {...register("email")}
                   type="email"
-                  placeholder="Enter email"
+                  placeholder="ایمیل را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.email.message}
+                  </p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  تلفن
                 </label>
                 <Input
                   {...register("phone")}
-                  placeholder="Enter phone number"
+                  placeholder="شماره تلفن را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  National ID
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  کد ملی
                 </label>
                 <Input
                   {...register("nationalId")}
-                  placeholder="Enter national ID"
+                  placeholder="کد ملی را وارد کنید"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  تاریخ تولد
                 </label>
-                <Input
-                  {...register("dateOfBirth")}
-                  type="date"
+                <DateInputWithJalali
+                  value={watch("dateOfBirth")}
+                  onChange={(date) => setValue("dateOfBirth", date)}
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                آدرس
               </label>
               <Input
                 {...register("address")}
-                placeholder="Enter address"
+                placeholder="آدرس را وارد کنید"
+                className="focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Emergency Contact
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  تماس اضطراری
                 </label>
                 <Input
                   {...register("emergencyContact")}
-                  placeholder="Emergency contact name"
+                  placeholder="نام تماس اضطراری"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Emergency Phone
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  تلفن اضطراری
                 </label>
                 <Input
                   {...register("emergencyPhone")}
-                  placeholder="Emergency phone number"
+                  placeholder="شماره تلفن اضطراری"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Medical History
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                سابقه پزشکی
               </label>
               <textarea
                 {...register("medicalHistory")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 rows={3}
-                placeholder="Enter medical history"
+                placeholder="سابقه پزشکی را وارد کنید"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Allergies
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                حساسیت‌ها
               </label>
               <textarea
                 {...register("allergies")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 rows={3}
-                placeholder="Enter known allergies"
+                placeholder="حساسیت‌های شناخته شده را وارد کنید"
               />
             </div>
 
             {/* Insurance Information Section */}
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Insurance Information</h3>
+            <div className="border-t pt-6 mt-6 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 -mx-6 px-6 py-6 rounded-lg">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-blue-600" />
+                اطلاعات بیمه
+              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Insurance Provider
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    شرکت بیمه
                   </label>
                   <Input
                     {...register("insuranceProvider")}
-                    placeholder="e.g., Blue Cross, Aetna, Cigna"
+                    placeholder="مثال: ایران، البرز، پاسارگاد"
+                    className="focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Insurance Number
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    شماره بیمه
                   </label>
                   <Input
                     {...register("insuranceNumber")}
-                    placeholder="Insurance policy number"
+                    placeholder="شماره بیمه‌نامه"
+                    className="focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Group Number
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  شماره گروه
                 </label>
                 <Input
                   {...register("insuranceGroup")}
-                  placeholder="Group or plan number"
+                  placeholder="شماره گروه یا طرح"
+                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                یادداشت‌ها
               </label>
               <textarea
                 {...register("notes")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 rows={3}
-                placeholder="Additional notes"
+                placeholder="یادداشت‌های اضافی"
               />
             </div>
 
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+            <div className="flex justify-end gap-4 pt-6 border-t mt-6">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="min-w-[100px]"
+              >
+                لغو
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : patient ? "Update Patient" : "Create Patient"}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="min-w-[120px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    در حال ذخیره...
+                  </span>
+                ) : (
+                  patient ? "به‌روزرسانی بیمار" : "ایجاد بیمار"
+                )}
               </Button>
             </div>
           </form>
         </CardContent>
-      </Card>
-    </div>
+    </PositionedModal>
   );
 }

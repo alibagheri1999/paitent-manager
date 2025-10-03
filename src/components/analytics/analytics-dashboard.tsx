@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
-import { TreatmentStats } from "@/components/analytics/treatment-stats";
 import { PatientGrowth } from "@/components/analytics/patient-growth";
 import { formatCurrency } from "@/lib/utils";
 
@@ -48,37 +47,37 @@ export function AnalyticsDashboard() {
 
   const statsCards = [
     {
-      title: "Total Revenue",
+      title: "کل درآمد",
       value: formatCurrency(analytics.totalRevenue),
-      description: "All-time revenue",
+      description: "درآمد کل زمان",
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      title: "Monthly Revenue",
+      title: "درآمد ماهانه",
       value: formatCurrency(analytics.monthlyRevenue),
-      description: "This month's revenue",
+      description: "درآمد این ماه",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      title: "Total Patients",
-      value: analytics.totalPatients.toString(),
-      description: "Registered patients",
+      title: "کل بیماران",
+      value: analytics.totalPatients.toLocaleString('fa-IR'),
+      description: "بیماران ثبت‌شده",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      title: "Total Appointments",
-      value: analytics.totalAppointments.toString(),
-      description: "All appointments",
+      title: "کل نوبت‌ها",
+      value: analytics.totalAppointments.toLocaleString('fa-IR'),
+      description: "تمام نوبت‌ها",
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
     {
-      title: "Average Value",
+      title: "میانگین ارزش",
       value: formatCurrency(analytics.averageAppointmentValue),
-      description: "Per completed record",
+      description: "هر پرونده تکمیل شده",
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
     },
@@ -91,14 +90,14 @@ export function AnalyticsDashboard() {
         {statsCards.map((stat, index) => (
           <Card key={index} className="card-hover">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.description}</p>
-                </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className={`p-3 rounded-full ${stat.bgColor} shrink-0`}>
                   <div className={`h-6 w-6 ${stat.color}`}></div>
+                </div>
+                <div className="text-right flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                  <p className="text-xs text-gray-500">{stat.description}</p>
                 </div>
               </div>
             </CardContent>
@@ -111,9 +110,6 @@ export function AnalyticsDashboard() {
         <RevenueChart />
         <PatientGrowth />
       </div>
-
-      {/* Treatment Statistics */}
-      <TreatmentStats treatments={analytics.topTreatments} />
     </div>
   );
 }

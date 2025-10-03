@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, X } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
-import { CancelModal } from "@/components/appointments/cancel-modal";
-import { RescheduleModal } from "@/components/appointments/reschedule-modal";
+import { translateAppointmentStatus, translateTreatmentType } from "@/lib/translate-enums";
 
 interface Appointment {
   id: string;
@@ -23,29 +22,31 @@ interface Appointment {
   treatmentType?: string;
 }
 
-export function TodayAppointments() {
+interface TodayAppointmentsProps {
+  onCancel?: (appointment: Appointment, element?: HTMLElement) => void;
+  onReschedule?: (appointment: Appointment, element?: HTMLElement) => void;
+  refreshKey?: number;
+}
+
+export function TodayAppointments({ onCancel, onReschedule, refreshKey }: TodayAppointmentsProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
   useEffect(() => {
     const fetchTodayAppointments = async () => {
       try {
         // Get today's date
         const today = new Date().toISOString().split('T')[0];
-        const now = new Date();
-        const currentTime = now.toTimeString().split(' ')[0]; // Get current time in HH:MM:SS format
         
         const response = await fetch(`/api/appointments?date=${today}&view=day&limit=10`);
         if (response.ok) {
           const data = await response.json();
           let appointments = data.appointments || [];
           
-          // Filter for today's appointments that are scheduled and haven't started yet
+          console.log("Dashboard - Today's appointments from API:", appointments);
+          
+          // Show all today's appointments (don't filter by time)
           appointments = appointments.filter((appointment: any) => {
-            return appointment.status === 'SCHEDULED' && 
-                   appointment.startTime >= currentTime;
+            return appointment.status !== 'CANCELLED' && appointment.status !== 'NO_SHOW';
           });
           
           // Sort by start time and take only the first 5
@@ -53,6 +54,7 @@ export function TodayAppointments() {
             .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime))
             .slice(0, 5);
           
+          console.log("Dashboard - Filtered appointments to display:", appointments);
           setAppointments(appointments);
         }
       } catch (error) {
@@ -62,55 +64,8 @@ export function TodayAppointments() {
     };
 
     fetchTodayAppointments();
-  }, []);
+  }, [refreshKey]);
 
-  const handleCancel = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setShowCancelModal(true);
-  };
-
-  const handleReschedule = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setShowRescheduleModal(true);
-  };
-
-  const handleModalClose = () => {
-    setShowCancelModal(false);
-    setShowRescheduleModal(false);
-    setSelectedAppointment(null);
-  };
-
-  const handleSuccess = () => {
-    handleModalClose();
-    // Refresh the appointments list
-    const fetchTodayAppointments = async () => {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const now = new Date();
-        const currentTime = now.toTimeString().split(' ')[0];
-        
-        const response = await fetch(`/api/appointments?date=${today}&view=day&limit=10`);
-        if (response.ok) {
-          const data = await response.json();
-          let appointments = data.appointments || [];
-          
-          appointments = appointments.filter((appointment: any) => {
-            return appointment.status === 'SCHEDULED' && 
-                   appointment.startTime >= currentTime;
-          });
-          
-          appointments = appointments
-            .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime))
-            .slice(0, 5);
-          
-          setAppointments(appointments);
-        }
-      } catch (error) {
-        console.error("Failed to fetch today's appointments:", error);
-      }
-    };
-    fetchTodayAppointments();
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -131,17 +86,17 @@ export function TodayAppointments() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Today's Appointments</CardTitle>
+          <CardTitle>نوبت‌های امروز</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {appointments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No upcoming appointments today</p>
+              <p className="text-gray-500 text-center py-4">نوبت آینده‌ای برای امروز وجود ندارد</p>
             ) : (
               appointments.map((appointment) => (
                 <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-3">
                       <div>
                         <p className="font-medium text-gray-900">
                           {appointment.patient.firstName} {appointment.patient.lastName}
@@ -150,33 +105,33 @@ export function TodayAppointments() {
                           {appointment.startTime} - {appointment.endTime}
                         </p>
                         {appointment.treatmentType && (
-                          <p className="text-xs text-gray-400 capitalize">
-                            {appointment.treatmentType.toLowerCase().replace("_", " ")}
+                          <p className="text-xs text-gray-400">
+                            {translateTreatmentType(appointment.treatmentType)}
                           </p>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Badge className="bg-blue-100 text-blue-800">
-                      Scheduled
+                      {translateAppointmentStatus('SCHEDULED')}
                     </Badge>
-                    <div className="flex space-x-1">
+                    <div className="flex gap-1">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleReschedule(appointment)}
+                        onClick={(e) => onReschedule?.(appointment, e.currentTarget)}
                         className="h-8 w-8 p-0"
-                        title="Reschedule"
+                        title="تغییر زمان"
                       >
                         <Calendar className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleCancel(appointment)}
+                        onClick={(e) => onCancel?.(appointment, e.currentTarget)}
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        title="Cancel"
+                        title="لغو"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -188,23 +143,6 @@ export function TodayAppointments() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Modals */}
-      {showCancelModal && selectedAppointment && (
-        <CancelModal
-          appointment={selectedAppointment}
-          onClose={handleModalClose}
-          onSuccess={handleSuccess}
-        />
-      )}
-
-      {showRescheduleModal && selectedAppointment && (
-        <RescheduleModal
-          appointment={selectedAppointment}
-          onClose={handleModalClose}
-          onSuccess={handleSuccess}
-        />
-      )}
     </>
   );
 }

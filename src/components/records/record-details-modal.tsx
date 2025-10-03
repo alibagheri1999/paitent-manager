@@ -315,10 +315,12 @@ export function RecordDetailsModal({ record, onClose, onRefresh }: RecordDetails
       {/* Edit Modal */}
       {showEditModal && record && (
         <RecordForm
+          isOpen={showEditModal}
           record={record}
           onClose={() => setShowEditModal(false)}
           onSuccess={handleEditSuccess}
           defaultPatientId={record.patient.id}
+          triggerElement={null}
         />
       )}
     </div>

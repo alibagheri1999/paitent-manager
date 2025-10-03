@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign, Activity } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface StatsData {
   totalPatients: number;
@@ -53,7 +54,7 @@ export function StatsCards() {
     },
     {
       title: "درآمد ماهانه",
-      value: `${stats.monthlyRevenue.toLocaleString('fa-IR')} ریال`,
+      value: formatCurrency(stats.monthlyRevenue),
       icon: DollarSign,
       color: "text-purple-600",
       bgColor: "bg-purple-50",

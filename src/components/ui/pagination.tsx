@@ -59,7 +59,7 @@ export function Pagination({
     return (
       <div className="flex items-center justify-between text-sm text-gray-700">
         <div>
-          Showing {totalCount > 0 ? startItem : 0} to {endItem} of {totalCount} results
+          نمایش {totalCount > 0 ? startItem : 0} تا {endItem} از {totalCount} نتیجه
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export function Pagination({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div className="text-sm text-gray-700 text-center sm:text-left">
-        Showing {startItem} to {endItem} of {totalCount} results
+        نمایش {startItem} تا {endItem} از {totalCount} نتیجه
       </div>
       
       <div className="flex items-center space-x-1 sm:space-x-2">
@@ -80,7 +80,7 @@ export function Pagination({
           className="text-xs sm:text-sm"
         >
           <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1">Previous</span>
+          <span className="hidden sm:inline ml-1">قبلی</span>
         </Button>
 
         <div className="flex items-center space-x-1">
@@ -121,7 +121,7 @@ export function Pagination({
           disabled={!hasNextPage}
           className="text-xs sm:text-sm"
         >
-          <span className="hidden sm:inline mr-1">Next</span>
+          <span className="hidden sm:inline mr-1">بعدی</span>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

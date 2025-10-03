@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toJalali } from "@/lib/date-utils";
+import { formatCurrency } from "@/lib/utils";
 
 interface RevenueData {
   date: string;
@@ -36,10 +37,6 @@ export function RevenueChart() {
     } catch {
       return dateStr;
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('fa-IR') + ' ریال';
   };
 
   return (

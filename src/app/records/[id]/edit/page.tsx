@@ -96,10 +96,12 @@ export default function EditRecordPage() {
       </div>
 
       <RecordForm
+        isOpen={true}
         record={record}
         onClose={handleCancel}
         onSuccess={handleSuccess}
         defaultPatientId={record.patient.id}
+        triggerElement={null}
       />
     </div>
   );

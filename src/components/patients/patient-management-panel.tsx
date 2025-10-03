@@ -460,6 +460,7 @@ export function PatientManagementPanel({ patient, onClose, onRefresh, triggerEle
                 <CardContent>
                   {isCreatingRecord ? (
                     <RecordForm
+                      isOpen={isCreatingRecord}
                       defaultPatientId={patient.id}
                       record={editingRecord}
                       onClose={() => {

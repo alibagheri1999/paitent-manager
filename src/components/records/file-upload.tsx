@@ -75,15 +75,15 @@ export function FileUpload({ recordId, onFileUploaded }: FileUploadProps) {
       if (response.ok) {
         const newFile = await response.json();
         setFiles(prev => [newFile, ...prev]);
-        toast.success("File uploaded successfully");
+        toast.success("فایل با موفقیت آپلود شد");
         onFileUploaded?.();
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to upload file");
+        toast.error(error.error || "آپلود فایل ناموفق بود");
       }
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Failed to upload file");
+      toast.error("آپلود فایل ناموفق بود");
     } finally {
       setIsUploading(false);
     }
@@ -97,15 +97,15 @@ export function FileUpload({ recordId, onFileUploaded }: FileUploadProps) {
 
       if (response.ok) {
         setFiles(prev => prev.filter(file => file.id !== fileId));
-        toast.success("File deleted successfully");
+        toast.success("فایل با موفقیت حذف شد");
         onFileUploaded?.();
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to delete file");
+        toast.error(error.error || "حذف فایل ناموفق بود");
       }
     } catch (error) {
       console.error("Error deleting file:", error);
-      toast.error("Failed to delete file");
+      toast.error("حذف فایل ناموفق بود");
     }
   };
 
@@ -133,7 +133,7 @@ export function FileUpload({ recordId, onFileUploaded }: FileUploadProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">Loading files...</div>
+          <div className="text-center text-right">در حال بارگذاری فایل‌ها...</div>
         </CardContent>
       </Card>
     );
@@ -151,57 +151,65 @@ export function FileUpload({ recordId, onFileUploaded }: FileUploadProps) {
               onChange={handleFileSelect}
               className="hidden"
               accept="image/*,.pdf,.doc,.docx,.txt"
+              id={`file-upload-${recordId}`}
             />
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <div className="text-sm text-gray-600 mb-4">
-              <p>Click to upload or drag and drop</p>
-              <p>Images, PDFs, Word documents, and text files (max 10MB)</p>
+              <p>برای آپلود کلیک کنید</p>
+              <p>تصاویر، PDF، اسناد Word و فایل‌های متنی (حداکثر ۱۰ مگابایت)</p>
             </div>
             <Button
-              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
               disabled={isUploading}
               variant="outline"
             >
-              {isUploading ? "Uploading..." : "Choose File"}
+              {isUploading ? "در حال آپلود..." : "انتخاب فایل"}
             </Button>
           </div>
 
           {/* Files List */}
           {files.length > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">Uploaded Files</h4>
+              <h4 className="font-medium text-gray-900 text-right">فایل‌های آپلود شده</h4>
               {files.map((file) => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getFileIcon(file.mimeType)}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {file.originalName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(file.fileSize)} • {new Date(file.uploadedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => window.open(file.fileUrl, '_blank')}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center gap-2 order-2">
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => deleteFile(file.id)}
                       className="text-red-600 hover:text-red-700"
+                      title="حذف فایل"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => window.open(file.fileUrl, '_blank')}
+                      title="دانلود فایل"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-3 order-1">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {file.originalName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatFileSize(file.fileSize)} • {new Date(file.uploadedAt).toLocaleDateString('fa-IR')}
+                      </p>
+                    </div>
+                    <span className="text-2xl">{getFileIcon(file.mimeType)}</span>
                   </div>
                 </div>
               ))}

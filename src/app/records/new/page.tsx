@@ -54,10 +54,12 @@ function NewRecordContent() {
         </CardHeader>
         <CardContent>
           <RecordForm
+            isOpen={true}
             record={null}
             onClose={handleClose}
             onSuccess={handleSuccess}
             defaultPatientId={patientId}
+            triggerElement={null}
           />
         </CardContent>
       </Card>

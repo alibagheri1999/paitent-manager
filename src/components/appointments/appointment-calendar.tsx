@@ -336,7 +336,7 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
               endTime: "18:00",
             }}
             eventDisplay="block"
-            dayMaxEvents={currentView === "month" ? 3 : false}
+            dayMaxEvents={false}
             moreLinkClick="popover"
             initialDate={currentDate}
             selectable={true}
@@ -344,8 +344,8 @@ export function AppointmentCalendar({ onDateSelect, onEditAppointment, refreshKe
             weekends={true}
             allDaySlot={false}
             eventTextColor="#ffffff"
-            aspectRatio={1.8}
-            dayMaxEventRows={3}
+            aspectRatio={2.2}
+            dayMaxEventRows={false}
             eventTimeFormat={{
               hour: 'numeric',
               minute: '2-digit',

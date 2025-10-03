@@ -2,15 +2,15 @@ import * as Minio from 'minio';
 
 // MinIO client configuration
 const minioClient = new Minio.Client({
-  endPoint: 'localhost',
-  port: 9000,
-  useSSL: false,
-  accessKey: 'root',
-  secretKey: 'P#ssw0rd',
+  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
+  port: parseInt(process.env.MINIO_PORT || '9000'),
+  useSSL: process.env.MINIO_USE_SSL === 'true',
+  accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+  secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin123',
 });
 
 // Bucket name for record files
-const BUCKET_NAME = 'dental-clinic';
+const BUCKET_NAME = process.env.MINIO_BUCKET_NAME || 'dental-clinic';
 
 // Initialize bucket if it doesn't exist
 export async function initializeMinio() {
@@ -51,7 +51,10 @@ export async function uploadFile(
     );
 
     // Return the file URL
-    return `http://localhost:9000/${BUCKET_NAME}/${objectName}`;
+    const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+    const endpoint = process.env.MINIO_ENDPOINT || 'localhost';
+    const port = process.env.MINIO_PORT || '9000';
+    return `${protocol}://${endpoint}:${port}/${BUCKET_NAME}/${objectName}`;
   } catch (error) {
     console.error('Error uploading file to MinIO:', error);
     throw new Error('Failed to upload file');

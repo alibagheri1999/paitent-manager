@@ -69,7 +69,7 @@ function NewRecordContent() {
 
 export default function NewRecordPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>در حال بارگذاری...</div>}>
       <NewRecordContent />
     </Suspense>
   );
